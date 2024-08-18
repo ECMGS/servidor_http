@@ -11,6 +11,7 @@ pub struct Router {
     route: String,
 
     routes: HashMap<Route, fn(Request, Response) -> Response>,
+    routers: HashMap<String, Router>,
 
     default_response: Option<Response>
 }
@@ -26,6 +27,7 @@ impl Router {
         Router {
             route,
             routes: HashMap::new(),
+            routers: HashMap::new(),
             default_response: None
         }
     }
@@ -38,9 +40,24 @@ impl Router {
         self.routes.insert(route, handler);
     }
 
+    pub fn handle_router(&mut self, router: Router) {
+        self.routers.insert(router.route.clone(), router);
+    }
+
+    pub(crate) fn not_found_handler(request: Request) -> Result<Response, RouterError>{
+        Err(RouterError {
+            route: request.url,
+            error_message: String::from("Route not found")
+        })
+    }
+
     pub(crate) fn handle_request(&self, request: Request) -> Result<Response, RouterError> {
 
-        let route_str = request.url.replace(&self.route, "/");
+        let mut route_str = request.url.trim_start_matches(self.route.as_str()).to_string();
+
+        if !route_str.starts_with("/") {
+            route_str.insert(0, '/');
+        }
 
         let request_route = Route::new(request.method, &route_str);
 
@@ -52,12 +69,21 @@ impl Router {
             }
         };
 
-        match self.routes.get(&request_route) {
-            Some(handler) => Ok(handler(request, response)),
-            None => {Err(RouterError {
-                route: route_str,
-                error_message: String::from("Route not found")
-            })}
+        if let Some(handler) = self.routes.get(&request_route) {
+            return Ok(handler(request, response));
         }
+
+        let mut subrouter_route = match route_str.split("/").nth(1) {
+            Some(route) => route,
+            None => {
+                return Self::not_found_handler(request);
+            }
+        }; 
+
+        if let Some(subrouter) = self.routers.get(format!("/{}",subrouter_route).as_str()) {
+            return subrouter.handle_request(request);
+        }
+
+        Self::not_found_handler(request) 
     }
 }
