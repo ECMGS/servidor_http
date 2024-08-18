@@ -73,7 +73,7 @@ impl Router {
             return Ok(handler(request, response));
         }
 
-        let mut subrouter_route = match route_str.split("/").nth(1) {
+        let subrouter_route = match route_str.split("/").nth(1) {
             Some(route) => route,
             None => {
                 return Self::not_found_handler(request);
