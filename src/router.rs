@@ -22,6 +22,12 @@ pub struct RouterError {
     pub error_message: String
 }
 
+impl Default for Router {
+    fn default() -> Self {
+        Router::new(String::from("/"))
+    }
+}
+
 impl Router {
     pub fn new(route: String) -> Self {
         Router {
@@ -32,9 +38,7 @@ impl Router {
         }
     }
 
-    pub fn default() -> Self {
-        Router::new(String::from("/"))
-    }
+    
 
     pub fn handle_route(&mut self, route: Route, handler: fn(Request, Response) -> Response) {
         self.routes.insert(route, handler);
@@ -55,7 +59,7 @@ impl Router {
 
         let mut route_str = request.url.trim_start_matches(self.route.as_str()).to_string();
 
-        if !route_str.starts_with("/") {
+        if !route_str.starts_with('/') {
             route_str.insert(0, '/');
         }
 
@@ -64,8 +68,7 @@ impl Router {
         let response = match self.default_response.clone() {
             Some(res) => res,
             None => {
-                let res = Response::new(ResponseStatus::OK);
-                res
+                Response::new(ResponseStatus::OK)
             }
         };
 
@@ -73,7 +76,7 @@ impl Router {
             return Ok(handler(request, response));
         }
 
-        let subrouter_route = match route_str.split("/").nth(1) {
+        let subrouter_route = match route_str.split('/').nth(1) {
             Some(route) => route,
             None => {
                 return Self::not_found_handler(request);

@@ -86,7 +86,7 @@ impl HttpServer {
             request_string.push_str(&line_str);
 
             if body_size == 0 && line_str.to_lowercase().contains("content-length") {
-                let mut parts = line_str.split(":");
+                let mut parts = line_str.split(':');
                 let value = parts.nth(1).unwrap();
 
                 body_size = value.trim().parse::<usize>().unwrap();
@@ -108,7 +108,7 @@ impl HttpServer {
 
         resp.pack();
 
-        stream.write(resp.to_string().as_bytes()).unwrap();
+        stream.write_all(resp.to_string().as_bytes()).unwrap();
         
         Ok(())
     }

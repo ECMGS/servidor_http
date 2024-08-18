@@ -14,7 +14,7 @@ fn main() {
     let mut sub_router = Router::new(String::from("/sub"));
 
     sub_router.handle_route(router::Route::new(request::RequestMethod::GET, "/"), |_, mut res| {
-        res.set_body(&format!("<h1>In Subrouter</h1>"));
+        res.set_body("<h1>In Subrouter</h1>");
         res.add_header("Content-Type", "text/html");
         res
     });

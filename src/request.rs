@@ -97,7 +97,7 @@ impl TryFrom<&str> for Request {
             }
         };
 
-        while let Some(header) = lines.next() {
+        for header in lines.by_ref() {
             if header.is_empty() {
                 break;
             }
