@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 pub use route::Route;
 
-use crate::{request::Request, response::{ResponseStatus, Response}};
+use crate::{Error, request::Request, response::{ResponseStatus, Response}};
 
 #[derive(Debug, Clone)]
 pub struct Router {
@@ -14,12 +14,6 @@ pub struct Router {
     routers: HashMap<String, Router>,
 
     default_response: Option<Response>
-}
-
-#[derive(Debug)]
-pub struct RouterError {
-    pub route: String,
-    pub error_message: String
 }
 
 impl Default for Router {
@@ -38,8 +32,6 @@ impl Router {
         }
     }
 
-    
-
     pub fn handle_route(&mut self, route: Route, handler: fn(Request, Response) -> Response) {
         self.routes.insert(route, handler);
     }
@@ -48,14 +40,12 @@ impl Router {
         self.routers.insert(router.route.clone(), router);
     }
 
-    pub(crate) fn not_found_handler(request: Request) -> Result<Response, RouterError>{
-        Err(RouterError {
-            route: request.url,
-            error_message: String::from("Route not found")
-        })
+    pub(crate) fn not_found_handler(request: Request) -> Result<Response, Error>{
+        let route = Route::new(request.method, request.url.as_str());
+        Err(Error::RouterError(RouterError::RouteNotFound(route)))
     }
 
-    pub(crate) fn handle_request(&self, request: Request) -> Result<Response, RouterError> {
+    pub(crate) fn handle_request(&self, request: Request) -> Result<Response, Error> {
 
         let mut route_str = request.url.trim_start_matches(self.route.as_str()).to_string();
 
@@ -89,4 +79,12 @@ impl Router {
 
         Self::not_found_handler(request) 
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum RouterError {
+
+    #[error("Route not found: {0:?}")]
+    RouteNotFound(Route),
+
 }

@@ -54,7 +54,7 @@ impl Request {
 }
 
 impl TryFrom<&str> for Request {
-    type Error = &'static str;
+    type Error = crate::Error;
 
     fn try_from(req: &str) -> Result<Self, Self::Error> {
         let mut lines = req.lines();
@@ -67,33 +67,37 @@ impl TryFrom<&str> for Request {
                     Some(method) => {
                         method
                     },
-                    None => return Err("Invalid request")
+                    None => return Err(crate::Error::RequestError(RequestError::InvalidRequest(String::from(req))))
                 };
 
-                let request_method = RequestMethod::try_from(request_method_string)?;
+                let request_method = match RequestMethod::try_from(request_method_string) {
+                    Ok(method) => method,
+                    Err(_) => return Err(crate::Error::RequestError(RequestError::InvalidRequestMethod(String::from(request_method_string))))
+                };
 
                 let request_url = match request_line_parts.next() {
                     Some(url) => {
                         url
                     },
-                    None => return Err("No url found")
+                    None => return Err(crate::Error::RequestError(RequestError::NoUrlFound))
                 };
 
-                let _http_version = match request_line_parts.next() {
+                let http_version = match request_line_parts.next() {
                     Some(version) => {
                         version
                     },
-                    None => return Err("No http version found")
+                    None => return Err(crate::Error::RequestError(RequestError::InvalidRequest(String::from(req)))
+                    )
                 };
 
-                if !_http_version.contains("HTTP/") {
-                    return Err("HTTP version not supported");
+                if !http_version.contains("HTTP/") {
+                    return Err(crate::Error::RequestError(RequestError::HttpVersionNotSupported(String::from(http_version))));
                 }
 
                 Request::new(request_method, request_url)
             }
             None => {
-                return Err("No request line found");
+                return Err(crate::Error::RequestError(RequestError::InvalidRequest(String::from(req))));
             }
         };
 
@@ -106,12 +110,12 @@ impl TryFrom<&str> for Request {
             
             let header_key = match header_parts.next() {
                 Some(key) => key,
-                None => return Err("No header key found")
+                None => return Err(crate::Error::RequestError(RequestError::InvalidHeader(String::from(header))))
             };
 
             let header_value = match header_parts.next() {
                 Some(value) => value.trim(),
-                None => return Err("No header value found")
+                None => return Err(crate::Error::RequestError(RequestError::InvalidHeader(String::from(header))))
             };
 
             request.add_header(header_key, header_value);
@@ -126,4 +130,23 @@ impl TryFrom<&str> for Request {
         Ok(request)
 
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum RequestError {
+
+    #[error("Invalid request\nRaw data:\n{0}")]
+    InvalidRequest(String),
+
+    #[error("Invalid request method: {0}")]
+    InvalidRequestMethod(String),
+
+    #[error("No URL found in request")]
+    NoUrlFound,
+
+    #[error("HTTP version not supported: {0}")]
+    HttpVersionNotSupported(String),
+
+    #[error("Invalid header")]
+    InvalidHeader(String),
 }

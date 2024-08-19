@@ -21,16 +21,12 @@ fn main() {
 
     router.handle_router(sub_router);
 
-    server.add_router(router);
+    server.attach_router(router);
 
     loop {
-        if let Err(e) = server.listen() {
-            if e.message.contains("Route not found") {
-                continue;
-            };
-            panic!("Error: {}", e.message);
-        }
-        
+        if let Err(servidor_http::Error::RouterError(servidor_http::router::RouterError::RouteNotFound(msg))) = server.listen() {
+            println!("Route not found: {:?}", msg);
+        } 
     }
 
 }

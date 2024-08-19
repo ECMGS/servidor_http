@@ -14,35 +14,29 @@ pub struct HttpServer {
     router: Option<router::Router>,
 }
 
-#[derive(Debug)]
-pub struct HttpServerError {
-    pub message: String,
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error(transparent)]
+    Io(#[from] io::Error),
+
+    #[error(transparent)]
+    ServerError(#[from] ServerError),
+
+    #[error(transparent)]
+    RouterError(#[from] router::RouterError),
+
+    #[error(transparent)]
+    RequestError(#[from] request::RequestError),
 }
 
-impl ToString for HttpServerError {
-    fn to_string(&self) -> String {
-        format!("[HTTP Server Error]: {}", self.message)
-    }
-}
-
-impl From<io::Error> for HttpServerError {
-    fn from(error: io::Error) -> Self {
-        HttpServerError {
-            message: format!("IO Error: {}", error),
-        }
-    }
-}
-
-impl From<router::RouterError> for HttpServerError {
-    fn from(error:router::RouterError) -> Self {
-        HttpServerError {
-            message: format!("Router Error on ({}): {}", error.route, error.error_message),
-        }
-    }
+#[derive(Debug, thiserror::Error)]
+pub enum ServerError {
+    #[error("HttpServer has no router attached")]
+    NoRouterAttached,
 }
 
 impl HttpServer {
-    pub fn new(port: u16) -> Result<Self, HttpServerError> {
+    pub fn new(port: u16) -> Result<Self, Error> {
         let listener = net::TcpListener::bind(format!("0.0.0.0:{}", port))?;
 
         let server = HttpServer { listener, router: None };
@@ -50,16 +44,14 @@ impl HttpServer {
         Ok(server)
     }
 
-    pub fn add_router(&mut self, router: router::Router) {
+    pub fn attach_router(&mut self, router: router::Router) {
         self.router = Some(router);
     }
 
-    pub fn listen(&self) -> Result<(), HttpServerError> {
+    pub fn listen(&self) -> Result<(), Error> {
 
         if self.router.is_none() {
-            return Err(HttpServerError {
-                message: String::from("Router not set"),
-            });
+            return Err(Error::ServerError(ServerError::NoRouterAttached));
         }
 
         for stream_result in self.listener.incoming() {
@@ -72,7 +64,7 @@ impl HttpServer {
         Ok(())
     }
 
-    fn handle_connection(mut stream: TcpStream, router: Router) -> Result<(), HttpServerError> {
+    fn handle_connection(mut stream: TcpStream, router: Router) -> Result<(), Error> {
         let mut buf_reader = BufReader::new(&mut stream);
 
         let mut request_string = String::new();
