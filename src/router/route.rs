@@ -1,4 +1,4 @@
-use crate::{request::RequestMethod};
+use crate::request::RequestMethod;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Route {
