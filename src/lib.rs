@@ -3,13 +3,16 @@ pub mod response;
 
 pub mod router;
 
-use std::{io::{self, prelude::*, BufReader}, net::{self, TcpStream}};
+use std::{
+    io::{self, prelude::*, BufReader},
+    net::{TcpListener, TcpStream},
+};
 
 use router::Router;
 
 #[derive(Debug)]
 pub struct HttpServer {
-    listener: std::net::TcpListener,
+    listener: TcpListener,
 
     router: Option<router::Router>,
 }
@@ -37,9 +40,12 @@ pub enum ServerError {
 
 impl HttpServer {
     pub fn new(port: u16) -> Result<Self, Error> {
-        let listener = net::TcpListener::bind(format!("0.0.0.0:{}", port))?;
+        let listener = TcpListener::bind(format!("0.0.0.0:{}", port))?;
 
-        let server = HttpServer { listener, router: None };
+        let server = HttpServer {
+            listener,
+            router: None,
+        };
 
         Ok(server)
     }
@@ -49,7 +55,6 @@ impl HttpServer {
     }
 
     pub fn listen(&self) -> Result<(), Error> {
-
         if self.router.is_none() {
             return Err(Error::ServerError(ServerError::NoRouterAttached));
         }
@@ -71,7 +76,6 @@ impl HttpServer {
         let mut body_size = 0;
 
         loop {
-        
             let mut line_str = String::new();
             let bytes_read = buf_reader.read_line(&mut line_str).unwrap();
 
@@ -101,7 +105,7 @@ impl HttpServer {
         resp.pack();
 
         stream.write_all(resp.to_string().as_bytes()).unwrap();
-        
+
         Ok(())
     }
 }

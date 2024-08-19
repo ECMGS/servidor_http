@@ -4,7 +4,11 @@ use std::collections::HashMap;
 
 pub use route::Route;
 
-use crate::{Error, request::Request, response::{ResponseStatus, Response}};
+use crate::{
+    request::Request,
+    response::{Response, ResponseStatus},
+    Error,
+};
 
 #[derive(Debug, Clone)]
 pub struct Router {
@@ -13,7 +17,7 @@ pub struct Router {
     routes: HashMap<Route, fn(Request, Response) -> Response>,
     routers: HashMap<String, Router>,
 
-    default_response: Option<Response>
+    default_response: Option<Response>,
 }
 
 impl Default for Router {
@@ -28,7 +32,7 @@ impl Router {
             route,
             routes: HashMap::new(),
             routers: HashMap::new(),
-            default_response: None
+            default_response: None,
         }
     }
 
@@ -40,14 +44,16 @@ impl Router {
         self.routers.insert(router.route.clone(), router);
     }
 
-    pub(crate) fn not_found_handler(request: Request) -> Result<Response, Error>{
+    pub(crate) fn not_found_handler(request: Request) -> Result<Response, Error> {
         let route = Route::new(request.method, request.url.as_str());
         Err(Error::RouterError(RouterError::RouteNotFound(route)))
     }
 
     pub(crate) fn handle_request(&self, request: Request) -> Result<Response, Error> {
-
-        let mut route_str = request.url.trim_start_matches(self.route.as_str()).to_string();
+        let mut route_str = request
+            .url
+            .trim_start_matches(self.route.as_str())
+            .to_string();
 
         if !route_str.starts_with('/') {
             route_str.insert(0, '/');
@@ -57,9 +63,7 @@ impl Router {
 
         let response = match self.default_response.clone() {
             Some(res) => res,
-            None => {
-                Response::new(ResponseStatus::OK)
-            }
+            None => Response::new(ResponseStatus::OK),
         };
 
         if let Some(handler) = self.routes.get(&request_route) {
@@ -71,20 +75,18 @@ impl Router {
             None => {
                 return Self::not_found_handler(request);
             }
-        }; 
+        };
 
-        if let Some(subrouter) = self.routers.get(format!("/{}",subrouter_route).as_str()) {
+        if let Some(subrouter) = self.routers.get(format!("/{}", subrouter_route).as_str()) {
             return subrouter.handle_request(request);
         }
 
-        Self::not_found_handler(request) 
+        Self::not_found_handler(request)
     }
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum RouterError {
-
     #[error("Route not found: {0:?}")]
     RouteNotFound(Route),
-
 }

@@ -28,7 +28,7 @@ pub enum ResponseStatus {
     HttpVersionNotSupported,
 
     // Other status codes
-    Other(u16, String)
+    Other(u16, String),
 }
 
 impl TryFrom<u16> for ResponseStatus {
@@ -62,10 +62,9 @@ impl TryFrom<u16> for ResponseStatus {
             505 => Ok(ResponseStatus::HttpVersionNotSupported),
 
             // Handle other status codes
-            val => Ok(ResponseStatus::Other(val, "Unknown".to_string()))
+            val => Ok(ResponseStatus::Other(val, "Unknown".to_string())),
         }
     }
-    
 }
 
 impl ToString for ResponseStatus {
@@ -75,7 +74,7 @@ impl ToString for ResponseStatus {
             ResponseStatus::OK => "200 OK".to_string(),
             ResponseStatus::Created => "201 Created".to_string(),
             ResponseStatus::Accepted => "202 Accepted".to_string(),
-            
+
             // 3xx
             ResponseStatus::MovedPermanently => "301 Moved Permanently".to_string(),
             ResponseStatus::Found => "302 Found".to_string(),
@@ -97,10 +96,9 @@ impl ToString for ResponseStatus {
             ResponseStatus::HttpVersionNotSupported => "505 HTTP Version Not Supported".to_string(),
 
             // Handle other status codes
-            ResponseStatus::Other(code, message) => format!("{} {}", code, message)
+            ResponseStatus::Other(code, message) => format!("{} {}", code, message),
         }
     }
-    
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -108,7 +106,7 @@ pub struct Response {
     pub status: ResponseStatus,
 
     pub headers: HashMap<String, String>,
-    pub body: Option<String>
+    pub body: Option<String>,
 }
 
 impl Response {
@@ -116,7 +114,7 @@ impl Response {
         Response {
             status,
             headers: HashMap::new(),
-            body: None
+            body: None,
         }
     }
 
@@ -131,12 +129,11 @@ impl Response {
     pub fn set_body(&mut self, body: &str) {
         self.body = Some(body.to_string());
     }
-    
-    pub fn pack(&mut self) {
 
+    pub fn pack(&mut self) {
         let content_length = match self.body.as_ref() {
             Some(body) => body.len().to_string(),
-            None => "0".to_string()
+            None => "0".to_string(),
         };
 
         self.add_header("Content-Length", &content_length);
