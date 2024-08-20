@@ -1,4 +1,5 @@
 use servidor_http::{
+    package::Package,
     request,
     router::{self, Router},
     HttpServer,
@@ -12,9 +13,9 @@ fn main() {
     router.handle_route(
         router::Route::new(request::RequestMethod::GET, "/"),
         |req, mut res| {
-            res.set_body(&format!(
+            res.set_body(format!(
                 "<h1>{}</h1>",
-                req.body.unwrap_or(String::from("No body Received"))
+                req.get_body().unwrap_or(String::from("No body Received"))
             ));
             res.add_header("Content-Type", "text/html");
             res
@@ -26,7 +27,7 @@ fn main() {
     sub_router.handle_route(
         router::Route::new(request::RequestMethod::GET, "/"),
         |_, mut res| {
-            res.set_body("<h1>In Subrouter</h1>");
+            res.set_body(String::from("<h1>In Subrouter</h1>"));
             res.add_header("Content-Type", "text/html");
             res
         },

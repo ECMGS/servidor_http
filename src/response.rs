@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use crate::package;
+pub use crate::package::Package;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ResponseStatus {
     // 2xx
@@ -105,9 +108,11 @@ impl ToString for ResponseStatus {
 pub struct Response {
     pub status: ResponseStatus,
 
-    pub headers: HashMap<String, String>,
-    pub body: Option<String>,
+    headers: HashMap<String, String>,
+    body: Option<String>,
 }
+
+package::generate_package_getters_setters!(Response[String]);
 
 impl Response {
     pub fn new(status: ResponseStatus) -> Self {
@@ -116,18 +121,6 @@ impl Response {
             headers: HashMap::new(),
             body: None,
         }
-    }
-
-    pub fn add_header(&mut self, key: &str, value: &str) {
-        self.headers.insert(key.to_string(), value.to_string());
-    }
-
-    pub fn has_header(&self, key: &str) -> bool {
-        self.headers.contains_key(key)
-    }
-
-    pub fn set_body(&mut self, body: &str) {
-        self.body = Some(body.to_string());
     }
 
     pub fn pack(&mut self) {

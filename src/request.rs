@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::package::{self, Package};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RequestMethod {
     GET,
@@ -28,9 +30,12 @@ impl TryFrom<&str> for RequestMethod {
 pub struct Request {
     pub method: RequestMethod,
     pub url: String,
-    pub headers: HashMap<String, String>,
-    pub body: Option<String>,
+
+    headers: HashMap<String, String>,
+    body: Option<String>,
 }
+
+package::generate_package_getters_setters!(Request[String]);
 
 impl Request {
     pub fn new(request_type: RequestMethod, url: &str) -> Self {
@@ -40,14 +45,6 @@ impl Request {
             headers: HashMap::new(),
             body: None,
         }
-    }
-
-    pub fn add_header(&mut self, key: &str, value: &str) {
-        self.headers.insert(key.to_string(), value.to_string());
-    }
-
-    pub fn set_body(&mut self, body: &str) {
-        self.body = Some(body.to_string());
     }
 }
 
@@ -139,7 +136,7 @@ impl TryFrom<&str> for Request {
         let body_collection = lines.collect::<Vec<&str>>();
 
         if !body_collection.is_empty() {
-            request.set_body(&body_collection.join("\n"));
+            request.set_body(body_collection.join("\n"));
         }
 
         Ok(request)

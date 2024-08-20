@@ -1,3 +1,4 @@
+use servidor_http::package::Package;
 use servidor_http::request;
 
 #[test]
@@ -34,7 +35,7 @@ fn request_with_body() {
 This is the body of the request.";
 
     let mut req = request::Request::new(request::RequestMethod::POST, "/index.html");
-    req.set_body("This is the body of the request.");
+    req.set_body(String::from("This is the body of the request."));
 
     assert_eq!(request::Request::try_from(req_str).unwrap(), req);
 }
