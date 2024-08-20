@@ -1,4 +1,4 @@
-use crate::request::RequestMethod;
+use crate::request::{Request, RequestMethod};
 
 /// Represents a route of a request made by a client.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -17,5 +17,11 @@ impl Route {
             method,
             path: String::from(path),
         }
+    }
+}
+
+impl From<Request> for Route {
+    fn from(request: Request) -> Self {
+        request.route
     }
 }

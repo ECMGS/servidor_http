@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::package;
+use crate::router::Route;
 
 pub use crate::package::Package;
 
@@ -33,13 +34,8 @@ impl TryFrom<&str> for RequestMethod {
 /// Represents a request made by a client.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
-    /// TODO: Replace with a `Route` struct.
-    #[allow(missing_docs)]
-    pub method: RequestMethod,
-
-    /// TODO: Replace with a `Route` struct.
-    #[allow(missing_docs)]
-    pub url: String,
+    /// The route of the request.
+    pub route: Route,
 
     headers: HashMap<String, String>,
     body: Option<String>,
@@ -48,12 +44,18 @@ pub struct Request {
 package::generate_package_getters_setters!(Request[String]);
 
 impl Request {
-    /// Generates a new request method
-    /// TODO: Replace function with one that takes a `Route` struct.
-    pub fn new(request_type: RequestMethod, url: &str) -> Self {
+    /// Generates a new request method, with the given method and path.
+    pub fn new(method: RequestMethod, path: &str) -> Self {
+        let route = Route::new(method, path);
+
+        Request::from(route)
+    }
+}
+
+impl From<Route> for Request {
+    fn from(route: Route) -> Self {
         Request {
-            method: request_type,
-            url: url.to_string(),
+            route,
             headers: HashMap::new(),
             body: None,
         }

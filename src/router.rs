@@ -50,13 +50,14 @@ impl Router {
     }
 
     fn not_found_handler(request: Request) -> Result<Response, Error> {
-        let route = Route::new(request.method, request.url.as_str());
+        let route = Route::new(request.route.method, request.route.path.as_str());
         Err(Error::RouterError(RouterError::RouteNotFound(route)))
     }
 
     pub(crate) fn handle_request(&self, request: Request) -> Result<Response, Error> {
         let mut route_str = request
-            .url
+            .route
+            .path
             .trim_start_matches(self.route.as_str())
             .to_string();
 
@@ -64,7 +65,7 @@ impl Router {
             route_str.insert(0, '/');
         }
 
-        let request_route = Route::new(request.method, &route_str);
+        let request_route = Route::new(request.route.method, &route_str);
 
         let response = match self.default_response.clone() {
             Some(res) => res,
