@@ -1,55 +1,85 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+use crate::package;
+use crate::router::Route;
+
+pub use crate::package::Package;
+
+/// Contains all the supported request methods.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[allow(missing_docs)]
 pub enum RequestMethod {
     GET,
     POST,
     PUT,
     DELETE,
-    HEAD
+    HEAD,
+    Other(String),
 }
 
-impl TryFrom<&str> for RequestMethod {
+macro_rules! gen_try_from_and_from {
+    ($($method:expr => $request_type:expr),*) => {
+        impl TryFrom<&str> for RequestMethod {
+            type Error = &'static str;
 
-    type Error = &'static str;
-
-    fn try_from(req: &str) -> Result<Self, Self::Error> {
-        match req {
-            "GET" => Ok(RequestMethod::GET),
-            "POST" => Ok(RequestMethod::POST),
-            "PUT" => Ok(RequestMethod::PUT),
-            "DELETE" => Ok(RequestMethod::DELETE),
-            "HEAD" => Ok(RequestMethod::HEAD),
-            _ => Err("Request met")
+            fn try_from(method_str: &str) -> Result<Self, Self::Error> {
+                match method_str {
+                    $($method => Ok($request_type),)*
+                    _ => Err("Request met"),
+                }
+            }
         }
-    }
 
+        impl RequestMethod {
+            /// Generates a request method from a string. If the method is not supported, it will return [RequestMethod::Other] with the method string inside.
+            /// Use preferablly [RequestMethod::try_from] instead.
+            pub fn from(method_str: &str) -> Self {
+                match method_str {
+                    $($method => $request_type,)*
+                    _ => RequestMethod::Other(String::from(method_str)),
+                }
+            }
+        }
+
+    };
 }
 
+gen_try_from_and_from!(
+    "GET" => RequestMethod::GET,
+    "POST" => RequestMethod::POST,
+    "PUT" => RequestMethod::PUT,
+    "DELETE" => RequestMethod::DELETE,
+    "HEAD" => RequestMethod::HEAD
+);
+
+/// Represents a request made by a client.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
-    pub method: RequestMethod,
-    pub url: String,
-    pub headers: HashMap<String, String>,
-    pub body: Option<String>
+    /// The route of the request.
+    pub route: Route,
+
+    headers: HashMap<String, String>,
+    body: Option<String>,
 }
 
+package::generate_package_getters_setters!(Request[String]);
+
 impl Request {
-    pub fn new(request_type: RequestMethod, url: &str) -> Self {
+    /// Generates a new request method, with the given method and path.
+    pub fn new(method: RequestMethod, path: &str) -> Self {
+        let route = Route::new(method, path);
+
+        Request::from(route)
+    }
+}
+
+impl From<Route> for Request {
+    fn from(route: Route) -> Self {
         Request {
-            method: request_type,
-            url: url.to_string(),
+            route,
             headers: HashMap::new(),
-            body: None
+            body: None,
         }
-    }
-
-    pub fn add_header(&mut self, key: &str, value: &str) {
-        self.headers.insert(key.to_string(), value.to_string());
-    }
-
-    pub fn set_body(&mut self, body: &str) {
-        self.body = Some(body.to_string());
     }
 }
 
@@ -64,40 +94,49 @@ impl TryFrom<&str> for Request {
                 let mut request_line_parts = request_line.split_whitespace();
 
                 let request_method_string = match request_line_parts.next() {
-                    Some(method) => {
-                        method
-                    },
-                    None => return Err(crate::Error::RequestError(RequestError::InvalidRequest(String::from(req))))
+                    Some(method) => method,
+                    None => {
+                        return Err(crate::Error::RequestError(RequestError::InvalidRequest(
+                            String::from(req),
+                        )))
+                    }
                 };
 
                 let request_method = match RequestMethod::try_from(request_method_string) {
                     Ok(method) => method,
-                    Err(_) => return Err(crate::Error::RequestError(RequestError::InvalidRequestMethod(String::from(request_method_string))))
+                    Err(_) => {
+                        return Err(crate::Error::RequestError(
+                            RequestError::InvalidRequestMethod(String::from(request_method_string)),
+                        ))
+                    }
                 };
 
                 let request_url = match request_line_parts.next() {
-                    Some(url) => {
-                        url
-                    },
-                    None => return Err(crate::Error::RequestError(RequestError::NoUrlFound))
+                    Some(url) => url,
+                    None => return Err(crate::Error::RequestError(RequestError::NoUrlFound)),
                 };
 
                 let http_version = match request_line_parts.next() {
-                    Some(version) => {
-                        version
-                    },
-                    None => return Err(crate::Error::RequestError(RequestError::InvalidRequest(String::from(req)))
-                    )
+                    Some(version) => version,
+                    None => {
+                        return Err(crate::Error::RequestError(RequestError::InvalidRequest(
+                            String::from(req),
+                        )))
+                    }
                 };
 
                 if !http_version.contains("HTTP/") {
-                    return Err(crate::Error::RequestError(RequestError::HttpVersionNotSupported(String::from(http_version))));
+                    return Err(crate::Error::RequestError(
+                        RequestError::HttpVersionNotSupported(String::from(http_version)),
+                    ));
                 }
 
                 Request::new(request_method, request_url)
             }
             None => {
-                return Err(crate::Error::RequestError(RequestError::InvalidRequest(String::from(req))));
+                return Err(crate::Error::RequestError(RequestError::InvalidRequest(
+                    String::from(req),
+                )));
             }
         };
 
@@ -107,46 +146,59 @@ impl TryFrom<&str> for Request {
             }
 
             let mut header_parts = header.splitn(2, ':');
-            
+
             let header_key = match header_parts.next() {
                 Some(key) => key,
-                None => return Err(crate::Error::RequestError(RequestError::InvalidHeader(String::from(header))))
+                None => {
+                    return Err(crate::Error::RequestError(RequestError::InvalidHeader(
+                        String::from(header),
+                    )))
+                }
             };
 
             let header_value = match header_parts.next() {
                 Some(value) => value.trim(),
-                None => return Err(crate::Error::RequestError(RequestError::InvalidHeader(String::from(header))))
+                None => {
+                    return Err(crate::Error::RequestError(RequestError::InvalidHeader(
+                        String::from(header),
+                    )))
+                }
             };
 
             request.add_header(header_key, header_value);
-        } 
+        }
 
         let body_collection = lines.collect::<Vec<&str>>();
 
         if !body_collection.is_empty() {
-            request.set_body(&body_collection.join("\n"));
+            request.set_body(body_collection.join("\n"));
         }
-        
-        Ok(request)
 
+        Ok(request)
     }
 }
 
+/// Contains all the possible errors that can occur when handling a request.
 #[derive(Debug, thiserror::Error)]
 pub enum RequestError {
-
+    /// The request is invalid (Either is empty or lacks an http version).
+    /// Caused by a user client
     #[error("Invalid request\nRaw data:\n{0}")]
     InvalidRequest(String),
 
+    /// The reques method is invalid. Check [crate::request::RequestMethod] for valid methods.
     #[error("Invalid request method: {0}")]
     InvalidRequestMethod(String),
 
+    /// No URL was found in the request.
     #[error("No URL found in request")]
     NoUrlFound,
 
+    /// The HTTP version is not supported.
     #[error("HTTP version not supported: {0}")]
     HttpVersionNotSupported(String),
 
+    /// The header is invalid (Doesn't follow the `"key":"value"` squeme).
     #[error("Invalid header")]
     InvalidHeader(String),
 }

@@ -1,16 +1,17 @@
-use servidor_http::response;
+use servidor_http::response::Response;
+use servidor_http::response::{Package, ResponseStatus};
 
 #[test]
 fn basic_response_to_string() {
-    let response = response::Response::new(response::ResponseStatus::OK);
-    
+    let response = Response::new(ResponseStatus::OK);
+
     let response_str = "HTTP/1.1 200 OK\r\n\r\n";
     assert_eq!(response.to_string(), response_str);
 }
 
 #[test]
 fn response_with_headers_to_string() {
-    let mut response = response::Response::new(response::ResponseStatus::OK);
+    let mut response = Response::new(ResponseStatus::OK);
     response.add_header("Content-Type", "text/html");
     response.add_header("Server", "Servidor HTTP");
 
@@ -30,13 +31,12 @@ fn response_with_headers_to_string() {
     }
 
     assert!(!missing_meaders);
-
 }
 
 #[test]
 fn response_with_body_to_string() {
-    let mut response = response::Response::new(response::ResponseStatus::OK);
-    response.set_body("Hello, world!");
+    let mut response = Response::new(ResponseStatus::OK);
+    response.set_body(String::from("Hello, world!"));
 
     let response_str = "HTTP/1.1 200 OK\r\n\r\nHello, world!";
     assert_eq!(response.to_string(), response_str);
@@ -44,13 +44,13 @@ fn response_with_body_to_string() {
 
 #[test]
 fn response_with_headers_and_body_to_string() {
-    let mut response = response::Response::new(response::ResponseStatus::OK);
+    let mut response = Response::new(ResponseStatus::OK);
     response.add_header("Content-Type", "text/html");
     response.add_header("Server", "Servidor HTTP");
 
     let body = "Test body";
 
-    response.set_body(body);
+    response.set_body(String::from(body));
 
     let response_str = response.to_string();
     let mut lines = response_str.lines();
@@ -70,5 +70,4 @@ fn response_with_headers_and_body_to_string() {
     assert!(!missing_meaders);
 
     assert_eq!(response_str.split("\r\n\r\n").last().unwrap(), body);
-
 }

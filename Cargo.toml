@@ -1,7 +1,10 @@
 [package]
 name = "servidor_http"
+description = "Servidor HTTP simple basado en Rust"
 version = "0.1.0"
 edition = "2021"
+authors = ["Eugenio C. <eucanomunoz@outlook.com>"]
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

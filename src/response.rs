@@ -1,5 +1,11 @@
 use std::collections::HashMap;
 
+use crate::package;
+
+pub use crate::package::Package;
+
+/// Contains all the supported response status codes.
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ResponseStatus {
     // 2xx
@@ -28,7 +34,7 @@ pub enum ResponseStatus {
     HttpVersionNotSupported,
 
     // Other status codes
-    Other(u16, String)
+    Other(u16, String),
 }
 
 impl TryFrom<u16> for ResponseStatus {
@@ -62,10 +68,9 @@ impl TryFrom<u16> for ResponseStatus {
             505 => Ok(ResponseStatus::HttpVersionNotSupported),
 
             // Handle other status codes
-            val => Ok(ResponseStatus::Other(val, "Unknown".to_string()))
+            val => Ok(ResponseStatus::Other(val, "Unknown".to_string())),
         }
     }
-    
 }
 
 impl ToString for ResponseStatus {
@@ -75,7 +80,7 @@ impl ToString for ResponseStatus {
             ResponseStatus::OK => "200 OK".to_string(),
             ResponseStatus::Created => "201 Created".to_string(),
             ResponseStatus::Accepted => "202 Accepted".to_string(),
-            
+
             // 3xx
             ResponseStatus::MovedPermanently => "301 Moved Permanently".to_string(),
             ResponseStatus::Found => "302 Found".to_string(),
@@ -97,46 +102,39 @@ impl ToString for ResponseStatus {
             ResponseStatus::HttpVersionNotSupported => "505 HTTP Version Not Supported".to_string(),
 
             // Handle other status codes
-            ResponseStatus::Other(code, message) => format!("{} {}", code, message)
+            ResponseStatus::Other(code, message) => format!("{} {}", code, message),
         }
     }
-    
 }
 
+/// Struct responsible for handling the response of a request.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Response {
+    /// Status of the response
     pub status: ResponseStatus,
 
-    pub headers: HashMap<String, String>,
-    pub body: Option<String>
+    headers: HashMap<String, String>,
+    body: Option<String>,
 }
 
+package::generate_package_getters_setters!(Response[String]);
+
 impl Response {
+    /// Generates a new response with the given status.
     pub fn new(status: ResponseStatus) -> Self {
         Response {
             status,
             headers: HashMap::new(),
-            body: None
+            body: None,
         }
     }
+}
 
-    pub fn add_header(&mut self, key: &str, value: &str) {
-        self.headers.insert(key.to_string(), value.to_string());
-    }
-
-    pub fn has_header(&self, key: &str) -> bool {
-        self.headers.contains_key(key)
-    }
-
-    pub fn set_body(&mut self, body: &str) {
-        self.body = Some(body.to_string());
-    }
-    
-    pub fn pack(&mut self) {
-
+impl Response {
+    pub(crate) fn pack(&mut self) {
         let content_length = match self.body.as_ref() {
             Some(body) => body.len().to_string(),
-            None => "0".to_string()
+            None => "0".to_string(),
         };
 
         self.add_header("Content-Length", &content_length);

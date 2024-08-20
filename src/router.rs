@@ -1,11 +1,17 @@
+#[allow(missing_docs)]
 pub mod route;
 
 use std::collections::HashMap;
 
 pub use route::Route;
 
-use crate::{Error, request::Request, response::{ResponseStatus, Response}};
+use crate::{
+    request::Request,
+    response::{Response, ResponseStatus},
+    Error,
+};
 
+/// Handles the routing of requests made by the client.
 #[derive(Debug, Clone)]
 pub struct Router {
     route: String,
@@ -13,7 +19,7 @@ pub struct Router {
     routes: HashMap<Route, fn(Request, Response) -> Response>,
     routers: HashMap<String, Router>,
 
-    default_response: Option<Response>
+    default_response: Option<Response>,
 }
 
 impl Default for Router {
@@ -23,43 +29,47 @@ impl Default for Router {
 }
 
 impl Router {
+    /// Generates a new router with a root route.
     pub fn new(route: String) -> Self {
         Router {
             route,
             routes: HashMap::new(),
             routers: HashMap::new(),
-            default_response: None
+            default_response: None,
         }
     }
 
+    /// Handles a response for a given route
     pub fn handle_route(&mut self, route: Route, handler: fn(Request, Response) -> Response) {
         self.routes.insert(route, handler);
     }
 
+    /// Routes the route to a subrouter
     pub fn handle_router(&mut self, router: Router) {
         self.routers.insert(router.route.clone(), router);
     }
 
-    pub(crate) fn not_found_handler(request: Request) -> Result<Response, Error>{
-        let route = Route::new(request.method, request.url.as_str());
+    fn not_found_handler(request: Request) -> Result<Response, Error> {
+        let route = Route::new(request.route.method, request.route.path.as_str());
         Err(Error::RouterError(RouterError::RouteNotFound(route)))
     }
 
     pub(crate) fn handle_request(&self, request: Request) -> Result<Response, Error> {
-
-        let mut route_str = request.url.trim_start_matches(self.route.as_str()).to_string();
+        let mut route_str = request
+            .route
+            .path
+            .trim_start_matches(self.route.as_str())
+            .to_string();
 
         if !route_str.starts_with('/') {
             route_str.insert(0, '/');
         }
 
-        let request_route = Route::new(request.method, &route_str);
+        let request_route = Route::new(request.route.method.clone(), &route_str);
 
         let response = match self.default_response.clone() {
             Some(res) => res,
-            None => {
-                Response::new(ResponseStatus::OK)
-            }
+            None => Response::new(ResponseStatus::OK),
         };
 
         if let Some(handler) = self.routes.get(&request_route) {
@@ -71,20 +81,20 @@ impl Router {
             None => {
                 return Self::not_found_handler(request);
             }
-        }; 
+        };
 
-        if let Some(subrouter) = self.routers.get(format!("/{}",subrouter_route).as_str()) {
+        if let Some(subrouter) = self.routers.get(format!("/{}", subrouter_route).as_str()) {
             return subrouter.handle_request(request);
         }
 
-        Self::not_found_handler(request) 
+        Self::not_found_handler(request)
     }
 }
 
+/// Errors that can occur when routing requests.
 #[derive(Debug, thiserror::Error)]
 pub enum RouterError {
-
+    /// Route not found.
     #[error("Route not found: {0:?}")]
     RouteNotFound(Route),
-
 }
