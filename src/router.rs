@@ -1,3 +1,4 @@
+#[allow(missing_docs)]
 pub mod route;
 
 use std::collections::HashMap;
@@ -10,6 +11,7 @@ use crate::{
     Error,
 };
 
+/// Handles the routing of requests made by the client.
 #[derive(Debug, Clone)]
 pub struct Router {
     route: String,
@@ -27,6 +29,7 @@ impl Default for Router {
 }
 
 impl Router {
+    /// Generates a new router with a root route.
     pub fn new(route: String) -> Self {
         Router {
             route,
@@ -36,15 +39,17 @@ impl Router {
         }
     }
 
+    /// Handles a response for a given route
     pub fn handle_route(&mut self, route: Route, handler: fn(Request, Response) -> Response) {
         self.routes.insert(route, handler);
     }
 
+    /// Routes the route to a subrouter
     pub fn handle_router(&mut self, router: Router) {
         self.routers.insert(router.route.clone(), router);
     }
 
-    pub(crate) fn not_found_handler(request: Request) -> Result<Response, Error> {
+    fn not_found_handler(request: Request) -> Result<Response, Error> {
         let route = Route::new(request.method, request.url.as_str());
         Err(Error::RouterError(RouterError::RouteNotFound(route)))
     }
@@ -85,8 +90,10 @@ impl Router {
     }
 }
 
+/// Errors that can occur when routing requests.
 #[derive(Debug, thiserror::Error)]
 pub enum RouterError {
+    /// Route not found.
     #[error("Route not found: {0:?}")]
     RouteNotFound(Route),
 }

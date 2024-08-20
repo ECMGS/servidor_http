@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
 use crate::package;
+
 pub use crate::package::Package;
 
+/// Contains all the supported response status codes.
+#[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ResponseStatus {
     // 2xx
@@ -104,8 +107,10 @@ impl ToString for ResponseStatus {
     }
 }
 
+/// Struct responsible for handling the response of a request.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Response {
+    /// Status of the response
     pub status: ResponseStatus,
 
     headers: HashMap<String, String>,
@@ -115,6 +120,7 @@ pub struct Response {
 package::generate_package_getters_setters!(Response[String]);
 
 impl Response {
+    /// Generates a new response with the given status.
     pub fn new(status: ResponseStatus) -> Self {
         Response {
             status,
@@ -122,8 +128,10 @@ impl Response {
             body: None,
         }
     }
+}
 
-    pub fn pack(&mut self) {
+impl Response {
+    pub(crate) fn pack(&mut self) {
         let content_length = match self.body.as_ref() {
             Some(body) => body.len().to_string(),
             None => "0".to_string(),

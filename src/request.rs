@@ -1,8 +1,12 @@
 use std::collections::HashMap;
 
-use crate::package::{self, Package};
+use crate::package;
 
+pub use crate::package::Package;
+
+/// Contains all the supported request methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[allow(missing_docs)]
 pub enum RequestMethod {
     GET,
     POST,
@@ -26,9 +30,15 @@ impl TryFrom<&str> for RequestMethod {
     }
 }
 
+/// Represents a request made by a client.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
+    /// TODO: Replace with a `Route` struct.
+    #[allow(missing_docs)]
     pub method: RequestMethod,
+
+    /// TODO: Replace with a `Route` struct.
+    #[allow(missing_docs)]
     pub url: String,
 
     headers: HashMap<String, String>,
@@ -38,6 +48,8 @@ pub struct Request {
 package::generate_package_getters_setters!(Request[String]);
 
 impl Request {
+    /// Generates a new request method
+    /// TODO: Replace function with one that takes a `Route` struct.
     pub fn new(request_type: RequestMethod, url: &str) -> Self {
         Request {
             method: request_type,
@@ -143,20 +155,27 @@ impl TryFrom<&str> for Request {
     }
 }
 
+/// Contains all the possible errors that can occur when handling a request.
 #[derive(Debug, thiserror::Error)]
 pub enum RequestError {
+    /// The request is invalid (Either is empty or lacks an http version).
+    /// Caused by a user client
     #[error("Invalid request\nRaw data:\n{0}")]
     InvalidRequest(String),
 
+    /// The reques method is invalid. Check [crate::request::RequestMethod] for valid methods.
     #[error("Invalid request method: {0}")]
     InvalidRequestMethod(String),
 
+    /// No URL was found in the request.
     #[error("No URL found in request")]
     NoUrlFound,
 
+    /// The HTTP version is not supported.
     #[error("HTTP version not supported: {0}")]
     HttpVersionNotSupported(String),
 
+    /// The header is invalid (Doesn't follow the `"key":"value"` squeme).
     #[error("Invalid header")]
     InvalidHeader(String),
 }
