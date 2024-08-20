@@ -6,7 +6,7 @@ use crate::router::Route;
 pub use crate::package::Package;
 
 /// Contains all the supported request methods.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[allow(missing_docs)]
 pub enum RequestMethod {
     GET,
@@ -14,22 +14,43 @@ pub enum RequestMethod {
     PUT,
     DELETE,
     HEAD,
+    Other(String),
 }
 
-impl TryFrom<&str> for RequestMethod {
-    type Error = &'static str;
+macro_rules! gen_try_from_and_from {
+    ($($method:expr => $request_type:expr),*) => {
+        impl TryFrom<&str> for RequestMethod {
+            type Error = &'static str;
 
-    fn try_from(req: &str) -> Result<Self, Self::Error> {
-        match req {
-            "GET" => Ok(RequestMethod::GET),
-            "POST" => Ok(RequestMethod::POST),
-            "PUT" => Ok(RequestMethod::PUT),
-            "DELETE" => Ok(RequestMethod::DELETE),
-            "HEAD" => Ok(RequestMethod::HEAD),
-            _ => Err("Request met"),
+            fn try_from(method_str: &str) -> Result<Self, Self::Error> {
+                match method_str {
+                    $($method => Ok($request_type),)*
+                    _ => Err("Request met"),
+                }
+            }
         }
-    }
+
+        impl RequestMethod {
+            /// Generates a request method from a string. If the method is not supported, it will return [RequestMethod::Other] with the method string inside.
+            /// Use preferablly [RequestMethod::try_from] instead.
+            pub fn from(method_str: &str) -> Self {
+                match method_str {
+                    $($method => $request_type,)*
+                    _ => RequestMethod::Other(String::from(method_str)),
+                }
+            }
+        }
+
+    };
 }
+
+gen_try_from_and_from!(
+    "GET" => RequestMethod::GET,
+    "POST" => RequestMethod::POST,
+    "PUT" => RequestMethod::PUT,
+    "DELETE" => RequestMethod::DELETE,
+    "HEAD" => RequestMethod::HEAD
+);
 
 /// Represents a request made by a client.
 #[derive(Debug, Clone, PartialEq, Eq)]

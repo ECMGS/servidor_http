@@ -65,7 +65,7 @@ impl Router {
             route_str.insert(0, '/');
         }
 
-        let request_route = Route::new(request.route.method, &route_str);
+        let request_route = Route::new(request.route.method.clone(), &route_str);
 
         let response = match self.default_response.clone() {
             Some(res) => res,

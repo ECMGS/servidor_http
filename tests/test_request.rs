@@ -1,5 +1,5 @@
 use servidor_http::package::Package;
-use servidor_http::request;
+use servidor_http::request::{self, RequestMethod};
 
 #[test]
 fn request_without_headers() {
@@ -83,4 +83,11 @@ fn request_with_invalid_method() {
         ) => assert_eq!(mtd, method),
         _ => assert!(false),
     }
+}
+
+#[test]
+fn weird_request_method() {
+    let method_str = "ECHO";
+    let method = RequestMethod::from(method_str);
+    assert_eq!(method, RequestMethod::Other(method_str.to_string()));
 }
