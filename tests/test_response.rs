@@ -1,9 +1,9 @@
 use servidor_http::response::Response;
-use servidor_http::response::{Package, ResponseStatus};
+use servidor_http::response::{Package, Status};
 
 #[test]
 fn basic_response_to_string() {
-    let response = Response::new(ResponseStatus::OK);
+    let response = Response::new(Status::OK);
 
     let response_str = "HTTP/1.1 200 OK\r\n\r\n";
     assert_eq!(response.to_string(), response_str);
@@ -11,7 +11,7 @@ fn basic_response_to_string() {
 
 #[test]
 fn response_with_headers_to_string() {
-    let mut response = Response::new(ResponseStatus::OK);
+    let mut response = Response::new(Status::OK);
     response.add_header("Content-Type", "text/html");
     response.add_header("Server", "Servidor HTTP");
 
@@ -35,7 +35,7 @@ fn response_with_headers_to_string() {
 
 #[test]
 fn response_with_body_to_string() {
-    let mut response = Response::new(ResponseStatus::OK);
+    let mut response = Response::new(Status::OK);
     response.set_body(String::from("Hello, world!"));
 
     let response_str = "HTTP/1.1 200 OK\r\n\r\nHello, world!";
@@ -44,7 +44,7 @@ fn response_with_body_to_string() {
 
 #[test]
 fn response_with_headers_and_body_to_string() {
-    let mut response = Response::new(ResponseStatus::OK);
+    let mut response = Response::new(Status::OK);
     response.add_header("Content-Type", "text/html");
     response.add_header("Server", "Servidor HTTP");
 

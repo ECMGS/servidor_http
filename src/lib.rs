@@ -73,14 +73,14 @@ pub enum ServerError {
 /// # Example
 ///
 /// ```no_run
-/// use servidor_http::{HttpServer, router::{Route, Router}, request::{Request, RequestMethod, Package}, Error};
+/// use servidor_http::{HttpServer, router::{Route, Router}, request::{Request, Method, Package}, Error};
 ///
 /// let mut server = HttpServer::new(8080).unwrap();
 ///
 /// let mut router = Router::new(String::from("/"));
 ///
 /// router.handle_route(
-///     Route::new(RequestMethod::GET, "/"),
+///     Route::new(Method::GET, "/"),
 ///     |req, mut res| {
 ///         res.set_body(String::from("Hello World"));
 ///         res

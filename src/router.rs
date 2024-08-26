@@ -7,14 +7,14 @@ pub use route::Route;
 
 use crate::{
     request::Request,
-    response::{Response, ResponseStatus},
+    response::{Response, Status},
     Error,
 };
 
 /// Handles the routing of requests made by the client.
 #[derive(Debug, Clone)]
 pub struct Router {
-    route: String,
+    path: String,
 
     routes: HashMap<Route, fn(Request, Response) -> Response>,
     routers: HashMap<String, Router>,
@@ -30,9 +30,9 @@ impl Default for Router {
 
 impl Router {
     /// Generates a new router with a root route.
-    pub fn new(route: String) -> Self {
+    pub fn new(path: String) -> Self {
         Router {
-            route,
+            path,
             routes: HashMap::new(),
             routers: HashMap::new(),
             default_response: None,
@@ -46,37 +46,37 @@ impl Router {
 
     /// Routes the route to a subrouter
     pub fn handle_router(&mut self, router: Router) {
-        self.routers.insert(router.route.clone(), router);
+        self.routers.insert(router.path.clone(), router);
     }
 
     fn not_found_handler(request: Request) -> Result<Response, Error> {
-        let route = Route::new(request.route.method, request.route.path.as_str());
+        let route = Route::new(request.path.method, request.path.path.as_str());
         Err(Error::RouterError(RouterError::RouteNotFound(route)))
     }
 
     pub(crate) fn handle_request(&self, request: Request) -> Result<Response, Error> {
-        let mut route_str = request
-            .route
+        let mut path_str = request
             .path
-            .trim_start_matches(self.route.as_str())
+            .path
+            .trim_start_matches(self.path.as_str())
             .to_string();
 
-        if !route_str.starts_with('/') {
-            route_str.insert(0, '/');
+        if !path_str.starts_with('/') {
+            path_str.insert(0, '/');
         }
 
-        let request_route = Route::new(request.route.method.clone(), &route_str);
+        let request_route = Route::new(request.path.method.clone(), &path_str);
 
         let response = match self.default_response.clone() {
             Some(res) => res,
-            None => Response::new(ResponseStatus::OK),
+            None => Response::new(Status::OK),
         };
 
         if let Some(handler) = self.routes.get(&request_route) {
             return Ok(handler(request, response));
         }
 
-        let subrouter_route = match route_str.split('/').nth(1) {
+        let subrouter_route = match path_str.split('/').nth(1) {
             Some(route) => route,
             None => {
                 return Self::not_found_handler(request);

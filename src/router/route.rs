@@ -1,10 +1,10 @@
-use crate::request::{Request, RequestMethod};
+use crate::request::{Method, Request};
 
 /// Represents a route of a request made by a client.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Route {
     /// The method of the request, check [crate::request::RequestMethod] for supported methods.
-    pub method: RequestMethod,
+    pub method: Method,
 
     /// The path of the request.
     pub path: String,
@@ -12,7 +12,7 @@ pub struct Route {
 
 impl Route {
     /// Generates a new request from the given method and path.
-    pub fn new(method: RequestMethod, path: &str) -> Self {
+    pub fn new(method: Method, path: &str) -> Self {
         Route {
             method,
             path: String::from(path),
@@ -22,6 +22,6 @@ impl Route {
 
 impl From<Request> for Route {
     fn from(request: Request) -> Self {
-        request.route
+        request.path
     }
 }

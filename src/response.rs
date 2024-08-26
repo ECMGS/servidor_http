@@ -7,7 +7,7 @@ pub use crate::package::Package;
 /// Contains all the supported response status codes.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum ResponseStatus {
+pub enum Status {
     // 2xx
     OK,
     Created,
@@ -37,72 +37,72 @@ pub enum ResponseStatus {
     Other(u16, String),
 }
 
-impl TryFrom<u16> for ResponseStatus {
+impl TryFrom<u16> for Status {
     type Error = &'static str;
 
     fn try_from(status_code: u16) -> Result<Self, Self::Error> {
         match status_code {
             // 2xx
-            200 => Ok(ResponseStatus::OK),
-            201 => Ok(ResponseStatus::Created),
-            202 => Ok(ResponseStatus::Accepted),
+            200 => Ok(Status::OK),
+            201 => Ok(Status::Created),
+            202 => Ok(Status::Accepted),
 
             // 3xx
-            301 => Ok(ResponseStatus::MovedPermanently),
-            302 => Ok(ResponseStatus::Found),
-            303 => Ok(ResponseStatus::SeeOther),
-            304 => Ok(ResponseStatus::NotModified),
+            301 => Ok(Status::MovedPermanently),
+            302 => Ok(Status::Found),
+            303 => Ok(Status::SeeOther),
+            304 => Ok(Status::NotModified),
 
             // 4xx
-            400 => Ok(ResponseStatus::BadRequest),
-            401 => Ok(ResponseStatus::Unauthorized),
-            403 => Ok(ResponseStatus::Forbidden),
-            404 => Ok(ResponseStatus::NotFound),
-            405 => Ok(ResponseStatus::MethodNotAllowed),
+            400 => Ok(Status::BadRequest),
+            401 => Ok(Status::Unauthorized),
+            403 => Ok(Status::Forbidden),
+            404 => Ok(Status::NotFound),
+            405 => Ok(Status::MethodNotAllowed),
 
             // 5xx
-            500 => Ok(ResponseStatus::InternalServerError),
-            501 => Ok(ResponseStatus::NotImplemented),
-            502 => Ok(ResponseStatus::BadGateway),
-            503 => Ok(ResponseStatus::ServiceUnavailable),
-            505 => Ok(ResponseStatus::HttpVersionNotSupported),
+            500 => Ok(Status::InternalServerError),
+            501 => Ok(Status::NotImplemented),
+            502 => Ok(Status::BadGateway),
+            503 => Ok(Status::ServiceUnavailable),
+            505 => Ok(Status::HttpVersionNotSupported),
 
             // Handle other status codes
-            val => Ok(ResponseStatus::Other(val, "Unknown".to_string())),
+            val => Ok(Status::Other(val, "Unknown".to_string())),
         }
     }
 }
 
-impl ToString for ResponseStatus {
+impl ToString for Status {
     fn to_string(&self) -> String {
         match self {
             // 2xx
-            ResponseStatus::OK => "200 OK".to_string(),
-            ResponseStatus::Created => "201 Created".to_string(),
-            ResponseStatus::Accepted => "202 Accepted".to_string(),
+            Status::OK => "200 OK".to_string(),
+            Status::Created => "201 Created".to_string(),
+            Status::Accepted => "202 Accepted".to_string(),
 
             // 3xx
-            ResponseStatus::MovedPermanently => "301 Moved Permanently".to_string(),
-            ResponseStatus::Found => "302 Found".to_string(),
-            ResponseStatus::SeeOther => "303 See Other".to_string(),
-            ResponseStatus::NotModified => "304 Not Modified".to_string(),
+            Status::MovedPermanently => "301 Moved Permanently".to_string(),
+            Status::Found => "302 Found".to_string(),
+            Status::SeeOther => "303 See Other".to_string(),
+            Status::NotModified => "304 Not Modified".to_string(),
 
             // 4xx
-            ResponseStatus::BadRequest => "400 Bad Request".to_string(),
-            ResponseStatus::Unauthorized => "401 Unauthorized".to_string(),
-            ResponseStatus::Forbidden => "403 Forbidden".to_string(),
-            ResponseStatus::NotFound => "404 Not Found".to_string(),
-            ResponseStatus::MethodNotAllowed => "405 Method Not Allowed".to_string(),
+            Status::BadRequest => "400 Bad Request".to_string(),
+            Status::Unauthorized => "401 Unauthorized".to_string(),
+            Status::Forbidden => "403 Forbidden".to_string(),
+            Status::NotFound => "404 Not Found".to_string(),
+            Status::MethodNotAllowed => "405 Method Not Allowed".to_string(),
 
             // 5xx
-            ResponseStatus::InternalServerError => "500 Internal Server Error".to_string(),
-            ResponseStatus::NotImplemented => "501 Not Implemented".to_string(),
-            ResponseStatus::BadGateway => "502 Bad Gateway".to_string(),
-            ResponseStatus::ServiceUnavailable => "503 Service Unavailable".to_string(),
-            ResponseStatus::HttpVersionNotSupported => "505 HTTP Version Not Supported".to_string(),
+            Status::InternalServerError => "500 Internal Server Error".to_string(),
+            Status::NotImplemented => "501 Not Implemented".to_string(),
+            Status::BadGateway => "502 Bad Gateway".to_string(),
+            Status::ServiceUnavailable => "503 Service Unavailable".to_string(),
+            Status::HttpVersionNotSupported => "505 HTTP Version Not Supported".to_string(),
 
             // Handle other status codes
-            ResponseStatus::Other(code, message) => format!("{} {}", code, message),
+            Status::Other(code, message) => format!("{} {}", code, message),
         }
     }
 }
@@ -111,7 +111,7 @@ impl ToString for ResponseStatus {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Response {
     /// Status of the response
-    pub status: ResponseStatus,
+    pub status: Status,
 
     headers: HashMap<String, String>,
     body: Option<String>,
@@ -121,7 +121,7 @@ package::generate_package_getters_setters!(Response[String]);
 
 impl Response {
     /// Generates a new response with the given status.
-    pub fn new(status: ResponseStatus) -> Self {
+    pub fn new(status: Status) -> Self {
         Response {
             status,
             headers: HashMap::new(),

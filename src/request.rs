@@ -8,7 +8,7 @@ pub use crate::package::Package;
 /// Contains all the supported request methods.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[allow(missing_docs)]
-pub enum RequestMethod {
+pub enum Method {
     GET,
     POST,
     PUT,
@@ -19,7 +19,7 @@ pub enum RequestMethod {
 
 macro_rules! gen_try_from_and_from {
     ($($method:expr => $request_type:expr),*) => {
-        impl TryFrom<&str> for RequestMethod {
+        impl TryFrom<&str> for Method {
             type Error = &'static str;
 
             fn try_from(method_str: &str) -> Result<Self, Self::Error> {
@@ -30,13 +30,13 @@ macro_rules! gen_try_from_and_from {
             }
         }
 
-        impl RequestMethod {
+        impl Method {
             /// Generates a request method from a string. If the method is not supported, it will return [RequestMethod::Other] with the method string inside.
             /// Use preferablly [RequestMethod::try_from] instead.
             pub fn from(method_str: &str) -> Self {
                 match method_str {
                     $($method => $request_type,)*
-                    _ => RequestMethod::Other(String::from(method_str)),
+                    _ => Method::Other(String::from(method_str)),
                 }
             }
         }
@@ -45,18 +45,18 @@ macro_rules! gen_try_from_and_from {
 }
 
 gen_try_from_and_from!(
-    "GET" => RequestMethod::GET,
-    "POST" => RequestMethod::POST,
-    "PUT" => RequestMethod::PUT,
-    "DELETE" => RequestMethod::DELETE,
-    "HEAD" => RequestMethod::HEAD
+    "GET" => Method::GET,
+    "POST" => Method::POST,
+    "PUT" => Method::PUT,
+    "DELETE" => Method::DELETE,
+    "HEAD" => Method::HEAD
 );
 
 /// Represents a request made by a client.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
     /// The route of the request.
-    pub route: Route,
+    pub path: Route,
 
     headers: HashMap<String, String>,
     body: Option<String>,
@@ -66,7 +66,7 @@ package::generate_package_getters_setters!(Request[String]);
 
 impl Request {
     /// Generates a new request method, with the given method and path.
-    pub fn new(method: RequestMethod, path: &str) -> Self {
+    pub fn new(method: Method, path: &str) -> Self {
         let route = Route::new(method, path);
 
         Request::from(route)
@@ -74,9 +74,9 @@ impl Request {
 }
 
 impl From<Route> for Request {
-    fn from(route: Route) -> Self {
+    fn from(path: Route) -> Self {
         Request {
-            route,
+            path,
             headers: HashMap::new(),
             body: None,
         }
@@ -102,7 +102,7 @@ impl TryFrom<&str> for Request {
                     }
                 };
 
-                let request_method = match RequestMethod::try_from(request_method_string) {
+                let request_method = match Method::try_from(request_method_string) {
                     Ok(method) => method,
                     Err(_) => {
                         return Err(crate::Error::RequestError(
@@ -111,7 +111,7 @@ impl TryFrom<&str> for Request {
                     }
                 };
 
-                let request_url = match request_line_parts.next() {
+                let request_path = match request_line_parts.next() {
                     Some(url) => url,
                     None => return Err(crate::Error::RequestError(RequestError::NoUrlFound)),
                 };
@@ -131,7 +131,7 @@ impl TryFrom<&str> for Request {
                     ));
                 }
 
-                Request::new(request_method, request_url)
+                Request::new(request_method, request_path)
             }
             None => {
                 return Err(crate::Error::RequestError(RequestError::InvalidRequest(

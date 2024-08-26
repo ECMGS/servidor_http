@@ -1,5 +1,5 @@
 use servidor_http::package::Package;
-use servidor_http::request::{self, RequestMethod};
+use servidor_http::request::{self, Method};
 
 #[test]
 fn request_without_headers() {
@@ -8,7 +8,7 @@ fn request_without_headers() {
 
     assert_eq!(
         req,
-        request::Request::new(request::RequestMethod::GET, "/index.html")
+        request::Request::new(request::Method::GET, "/index.html")
     );
 }
 
@@ -18,7 +18,7 @@ fn request_with_headers() {
 User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)
 Host: www.example.com
 ";
-    let mut req = request::Request::new(request::RequestMethod::GET, "/index.html");
+    let mut req = request::Request::new(request::Method::GET, "/index.html");
     req.add_header(
         "User-Agent",
         "Mozilla/4.0 (compatible; MSIE5.01; Windows NT)",
@@ -34,7 +34,7 @@ fn request_with_body() {
 
 This is the body of the request.";
 
-    let mut req = request::Request::new(request::RequestMethod::POST, "/index.html");
+    let mut req = request::Request::new(request::Method::POST, "/index.html");
     req.set_body(String::from("This is the body of the request."));
 
     assert_eq!(request::Request::try_from(req_str).unwrap(), req);
@@ -63,7 +63,7 @@ macro_rules! generate_request_method_type_tests {
                 let req_str = format!("{} /index.html HTTP/1.1\n", stringify!($method));
                 let req = request::Request::try_from(req_str.as_str()).unwrap();
 
-                assert_eq!(req, request::Request::new(request::RequestMethod::$method, "/index.html"));
+                assert_eq!(req, request::Request::new(request::Method::$method, "/index.html"));
             }
        )*
     };
@@ -88,6 +88,6 @@ fn request_with_invalid_method() {
 #[test]
 fn weird_request_method() {
     let method_str = "ECHO";
-    let method = RequestMethod::from(method_str);
-    assert_eq!(method, RequestMethod::Other(method_str.to_string()));
+    let method = Method::from(method_str);
+    assert_eq!(method, Method::Other(method_str.to_string()));
 }
