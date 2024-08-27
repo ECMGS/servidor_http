@@ -1,6 +1,6 @@
 use servidor_http::{
     package::Package,
-    request,
+    request::{self},
     router::{self, Router},
     HttpServer,
 };
@@ -22,12 +22,15 @@ fn main() {
         },
     );
 
-    let mut sub_router = Router::new(String::from("/sub"));
+    let mut sub_router = Router::new(String::from("/query"));
 
     sub_router.handle_route(
-        router::Route::new(request::Method::GET, "/"),
-        |_, mut res| {
-            res.set_body(String::from("<h1>In Subrouter</h1>"));
+        router::Route::new(request::Method::GET, "/test"),
+        |req, mut res| {
+            let query = req.query.unwrap();
+
+            let say = query.get("say").unwrap();
+            res.set_body(format!("<h1>In Subrouter</h1><p>got: {}</p>", say));
             res.add_header("Content-Type", "text/html");
             res
         },
