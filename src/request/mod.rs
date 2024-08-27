@@ -5,58 +5,20 @@ use crate::router::Route;
 
 pub use crate::package::Package;
 
-/// Contains all the supported request methods.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[allow(missing_docs)]
-pub enum Method {
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    HEAD,
-    Other(String),
-}
+mod method;
+mod query;
 
-macro_rules! gen_try_from_and_from {
-    ($($method:expr => $request_type:expr),*) => {
-        impl TryFrom<&str> for Method {
-            type Error = &'static str;
-
-            fn try_from(method_str: &str) -> Result<Self, Self::Error> {
-                match method_str {
-                    $($method => Ok($request_type),)*
-                    _ => Err("Request met"),
-                }
-            }
-        }
-
-        impl Method {
-            /// Generates a request method from a string. If the method is not supported, it will return [RequestMethod::Other] with the method string inside.
-            /// Use preferablly [RequestMethod::try_from] instead.
-            pub fn from(method_str: &str) -> Self {
-                match method_str {
-                    $($method => $request_type,)*
-                    _ => Method::Other(String::from(method_str)),
-                }
-            }
-        }
-
-    };
-}
-
-gen_try_from_and_from!(
-    "GET" => Method::GET,
-    "POST" => Method::POST,
-    "PUT" => Method::PUT,
-    "DELETE" => Method::DELETE,
-    "HEAD" => Method::HEAD
-);
+pub use method::Method;
+pub use query::Query;
 
 /// Represents a request made by a client.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
     /// The route of the request.
     pub path: Route,
+
+    /// The query of the request.
+    pub query: Option<Query>,
 
     headers: HashMap<String, String>,
     body: Option<String>,
@@ -66,10 +28,15 @@ package::generate_package_getters_setters!(Request[String]);
 
 impl Request {
     /// Generates a new request method, with the given method and path.
-    pub fn new(method: Method, path: &str) -> Self {
-        let route = Route::new(method, path);
+    pub fn new(method: Method, path: &str, query: Option<Query>) -> Self {
+        let path = Route::new(method, path);
 
-        Request::from(route)
+        Request {
+            path,
+            headers: HashMap::new(),
+            body: None,
+            query,
+        }
     }
 }
 
@@ -79,6 +46,7 @@ impl From<Route> for Request {
             path,
             headers: HashMap::new(),
             body: None,
+            query: None,
         }
     }
 }
@@ -111,9 +79,36 @@ impl TryFrom<&str> for Request {
                     }
                 };
 
-                let request_path = match request_line_parts.next() {
+                let request_path_with_query = match request_line_parts.next() {
                     Some(url) => url,
                     None => return Err(crate::Error::RequestError(RequestError::NoUrlFound)),
+                };
+
+                let (request_path, query) = match request_path_with_query.contains('?') {
+                    true => {
+                        let mut url_and_query = request_path_with_query.splitn(2, '?');
+
+                        let request_path = match url_and_query.next() {
+                            Some(url) => url,
+                            None => {
+                                return Err(crate::Error::RequestError(RequestError::NoUrlFound))
+                            }
+                        };
+
+                        let query_string = match url_and_query.next() {
+                            Some(query) => query,
+                            None => {
+                                return Err(crate::Error::RequestError(RequestError::QueryError(
+                                    request_path_with_query.to_string(),
+                                )))
+                            }
+                        };
+
+                        let query = Query::try_from(query_string)?;
+
+                        (request_path, Some(query))
+                    }
+                    false => (request_path_with_query, None),
                 };
 
                 let http_version = match request_line_parts.next() {
@@ -131,7 +126,7 @@ impl TryFrom<&str> for Request {
                     ));
                 }
 
-                Request::new(request_method, request_path)
+                Request::new(request_method, request_path, query)
             }
             None => {
                 return Err(crate::Error::RequestError(RequestError::InvalidRequest(
@@ -201,4 +196,8 @@ pub enum RequestError {
     /// The header is invalid (Doesn't follow the `"key":"value"` squeme).
     #[error("Invalid header")]
     InvalidHeader(String),
+
+    /// Error while getting the query from the request
+    #[error("Error parsing query: {0}")]
+    QueryError(String),
 }
