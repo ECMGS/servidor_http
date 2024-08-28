@@ -5,9 +5,11 @@ use crate::router::Route;
 
 pub use crate::package::Package;
 
+mod cookie_list;
 mod method;
 mod query;
 
+pub use cookie_list::CookieList;
 pub use method::Method;
 pub use query::Query;
 
@@ -19,6 +21,9 @@ pub struct Request {
 
     /// The query of the request.
     pub query: Option<Query>,
+
+    /// The cookies of the request.
+    pub cookies: Option<CookieList>,
 
     headers: HashMap<String, String>,
     body: Option<String>,
@@ -34,20 +39,16 @@ impl Request {
         Request {
             path,
             headers: HashMap::new(),
-            body: None,
             query,
+            cookies: None,
+            body: None,
         }
     }
 }
 
 impl From<Route> for Request {
     fn from(path: Route) -> Self {
-        Request {
-            path,
-            headers: HashMap::new(),
-            body: None,
-            query: None,
-        }
+        Request::new(path.method, path.path.as_str(), None)
     }
 }
 
@@ -163,6 +164,13 @@ impl TryFrom<&str> for Request {
             request.add_header(header_key, header_value);
         }
 
+        let _a = request.get_header_list().get("Cookie");
+        if let Some(cookies) = request.get_header_list().get("Cookie") {
+            let cookie_list = CookieList::try_from(cookies.as_str())?;
+
+            request.cookies = Some(cookie_list);
+        }
+
         let body_collection = lines.collect::<Vec<&str>>();
 
         if !body_collection.is_empty() {
@@ -200,4 +208,8 @@ pub enum RequestError {
     /// Error while getting the query from the request
     #[error("Error parsing query: {0}")]
     QueryError(String),
+
+    /// Error while parsing cookies
+    #[error("Error parsing cookies: {0}")]
+    CookieError(String),
 }

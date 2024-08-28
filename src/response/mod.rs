@@ -29,6 +29,11 @@ impl Response {
         }
     }
 
+    /// Sets a new session cookie (with the HttpOnly flag).
+    pub fn set_session_cookie(&mut self, name: &str, value: &str) {
+        self.add_header("Set-Cookie", &format!("{}={}; HttpOnly", name, value));
+    }
+
     /// Sets the body of the response to the contents of a file.
     pub fn send_file<P>(&mut self, path: P) -> Result<(), crate::Error>
     where

@@ -114,3 +114,21 @@ fn request_with_query() {
         "1"
     );
 }
+
+#[test]
+fn request_with_cookies() {
+    let req_str = "GET /index.html HTTP/1.1\r\nCookie: cookie1=value1; cookie2=value2;\r\n";
+
+    let mut req = request::Request::try_from(req_str).unwrap();
+
+    assert!(req.cookies.as_ref().is_some());
+
+    assert_eq!(
+        req.cookies.as_ref().unwrap().get("cookie1").unwrap(),
+        "value1"
+    );
+    assert_eq!(
+        req.cookies.as_ref().unwrap().get("cookie2").unwrap(),
+        "value2"
+    );
+}

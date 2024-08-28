@@ -104,7 +104,6 @@ impl HttpServer {
     }
 
     /// Attaches a router to the server, the router will handle the requests and return the response to the client.
-
     pub fn attach_router(&mut self, router: Router) {
         self.router = Some(router);
     }

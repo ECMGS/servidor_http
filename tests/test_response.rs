@@ -71,3 +71,13 @@ fn response_with_headers_and_body_to_string() {
 
     assert_eq!(response_str.split("\r\n\r\n").last().unwrap(), body);
 }
+
+#[test]
+fn response_with_cookies() {
+    let mut response = Response::new(Status::OK);
+    response.set_session_cookie("test", "ok");
+
+    let response_str = response.to_string();
+
+    assert!(response_str.contains("Set-Cookie: test=ok"));
+}
