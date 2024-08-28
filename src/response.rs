@@ -1,5 +1,5 @@
-use std::collections::HashMap;
-use std::fmt::Display;
+use std::{fmt::Display collections::HashMap, path::Path};
+
 use crate::package;
 
 pub use crate::package::Package;
@@ -128,6 +128,47 @@ impl Response {
             headers: HashMap::new(),
             body: None,
         }
+    }
+
+    /// Sets the body of the response to the contents of a file.
+    pub fn send_file<P>(&mut self, path: P) -> Result<(), crate::Error>
+    where
+        P: AsRef<Path>,
+    {
+        let content = std::fs::read_to_string(&path)?;
+
+        let file_extension = path
+            .as_ref()
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .unwrap_or("");
+
+        let content_type = match file_extension {
+            "html" => "text/html",
+            "css" => "text/css",
+            "js" => "text/javascript",
+            "json" => "application/json",
+            "png" => "image/png",
+            "jpg" | "jpeg" => "image/jpeg",
+            "gif" => "image/gif",
+            "svg" => "image/svg+xml",
+            "ico" => "image/x-icon",
+            "webp" => "image/webp",
+            "mp4" => "video/mp4",
+            "webm" => "video/webm",
+            "ogg" => "video/ogg",
+            "mp3" => "audio/mpeg",
+            "wav" => "audio/wav",
+            "flac" => "audio/flac",
+            "txt" => "text/plain",
+            _ => "application/octet-stream",
+        };
+
+        self.add_header("Content-Type", content_type);
+
+        self.set_body(content);
+
+        Ok(())
     }
 }
 

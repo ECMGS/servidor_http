@@ -1,7 +1,11 @@
 #[allow(missing_docs)]
 pub mod route;
 
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    fs::{self},
+    path::{Path, PathBuf},
+};
 
 pub use route::Route;
 
@@ -20,6 +24,8 @@ pub struct Router {
     routers: HashMap<String, Router>,
 
     default_response: Option<Response>,
+
+    static_path: Option<PathBuf>,
 }
 
 impl Default for Router {
@@ -36,6 +42,7 @@ impl Router {
             routes: HashMap::new(),
             routers: HashMap::new(),
             default_response: None,
+            static_path: None,
         }
     }
 
@@ -47,6 +54,14 @@ impl Router {
     /// Routes the route to a subrouter
     pub fn handle_router(&mut self, router: Router) {
         self.routers.insert(router.path.clone(), router);
+    }
+
+    /// Static path to serve files from
+    pub fn handle_static<P>(&mut self, path: P)
+    where
+        P: AsRef<Path>,
+    {
+        self.static_path = Some(PathBuf::from(path.as_ref()));
     }
 
     fn not_found_handler(request: Request) -> Result<Response, Error> {
@@ -73,15 +88,37 @@ impl Router {
             return Ok(handler(request, response));
         }
 
-        let subrouter_route = match path_str.split('/').nth(1) {
+        let route_segment = match path_str.split('/').nth(1) {
             Some(route) => route,
             None => {
                 return Self::not_found_handler(request);
             }
         };
 
-        if let Some(subrouter) = self.routers.get(format!("/{}", subrouter_route).as_str()) {
+        if let Some(subrouter) = self.routers.get(format!("/{}", route_segment).as_str()) {
             return subrouter.handle_request(request);
+        }
+
+        macro_rules! check_unsafe_path {
+            ($var:expr, $($unsafe_expr:expr),*) => {
+                if $($var.contains($unsafe_expr) ||)* false {
+                    return Self::not_found_handler(request);
+                }
+            };
+        }
+
+        if let Some(static_path) = &self.static_path {
+            check_unsafe_path!(path_str, "../", "..\\", ".\\", "~", "//", "\\", ":", "*");
+
+            if let Ok(path) = fs::canonicalize(static_path) {
+                let file_path = path.join(path_str.trim_start_matches('/'));
+
+                if file_path.exists() {
+                    let mut res = Response::new(Status::OK);
+                    res.send_file(file_path).unwrap();
+                    return Ok(res);
+                }
+            }
         }
 
         Self::not_found_handler(request)
