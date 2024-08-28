@@ -82,7 +82,10 @@ impl Router {
 
         let request_route = Route::new(request.path.method.clone(), &path_str);
 
-        let response = self.default_response.clone().unwrap_or_else(|| Response::new(Status::OK)); // Limpieza de código
+        let response = self
+            .default_response
+            .clone()
+            .unwrap_or_else(|| Response::new(Status::OK)); // Limpieza de código
 
         if let Some(handler) = self.routes.get(&request_route) {
             return Ok(handler(request, response));
