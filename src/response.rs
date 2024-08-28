@@ -2,7 +2,8 @@ use std::{collections::HashMap, fmt::Display, path::Path};
 
 use crate::package;
 
-pub use crate::package::Package;
+use crate::file_mime::{extension_to_mime, mime_to_extension};
+pub use package::Package;
 
 /// Contains all the supported response status codes.
 #[allow(missing_docs)]
@@ -247,27 +248,10 @@ impl Response {
             .and_then(|ext| ext.to_str())
             .unwrap_or("");
 
-        let content_type = match file_extension {
-            "html" => "text/html",
-            "css" => "text/css",
-            "js" => "text/javascript",
-            "json" => "application/json",
-            "png" => "image/png",
-            "jpg" | "jpeg" => "image/jpeg",
-            "gif" => "image/gif",
-            "svg" => "image/svg+xml",
-            "ico" => "image/x-icon",
-            "webp" => "image/webp",
-            "mp4" => "video/mp4",
-            "webm" => "video/webm",
-            "ogg" => "video/ogg",
-            "mp3" => "audio/mpeg",
-            "wav" => "audio/wav",
-            "flac" => "audio/flac",
-            "txt" => "text/plain",
-            _ => "application/octet-stream",
-        };
-
+        let content_type:&str=extension_to_mime(file_extension).unwrap();// Debugging
+        let content_ext:&str=mime_to_extension("image/jpeg").unwrap();// Debugging
+        println!("{}", content_ext);// Debugging
+        
         self.add_header("Content-Type", content_type);
 
         self.set_body(content);
