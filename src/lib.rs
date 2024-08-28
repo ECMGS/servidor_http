@@ -135,7 +135,7 @@ impl HttpServer {
 
         loop {
             let mut line_str = String::new();
-            let bytes_read = buf_reader.read_line(&mut line_str).unwrap();
+            let bytes_read = buf_reader.read_line(&mut line_str)?;
 
             request_string.push_str(&line_str);
 
@@ -152,7 +152,7 @@ impl HttpServer {
         }
 
         let mut body_bytes_buffer = vec![0; body_size];
-        buf_reader.read_exact(&mut body_bytes_buffer).unwrap();
+        buf_reader.read_exact(&mut body_bytes_buffer)?;
 
         request_string.push_str(&String::from_utf8_lossy(&body_bytes_buffer));
 
@@ -162,7 +162,7 @@ impl HttpServer {
 
         resp.pack();
 
-        stream.write_all(resp.to_string().as_bytes()).unwrap();
+        stream.write_all(resp.to_string().as_bytes())?;
 
         Ok(())
     }
