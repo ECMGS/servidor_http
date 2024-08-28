@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{fmt::Display collections::HashMap, path::Path};
 
 use crate::package;
 
@@ -73,9 +73,9 @@ impl TryFrom<u16> for Status {
     }
 }
 
-impl ToString for Status {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for Status { // Cambio a display para evitar implementar toString de forma directa
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             // 2xx
             Status::OK => "200 OK".to_string(),
             Status::Created => "201 Created".to_string(),
@@ -103,7 +103,8 @@ impl ToString for Status {
 
             // Handle other status codes
             Status::Other(code, message) => format!("{} {}", code, message),
-        }
+        };
+        write!(f, "{}", str)
     }
 }
 
@@ -186,8 +187,8 @@ impl Response {
     }
 }
 
-impl ToString for Response {
-    fn to_string(&self) -> String {
+impl Display for Response { // Cambio a display para evitar implementar toString de forma directa
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut resp = format!("HTTP/1.1 {}\r\n", self.status.to_string());
 
         for (key, value) in &self.headers {
@@ -200,6 +201,6 @@ impl ToString for Response {
             resp.push_str(body);
         }
 
-        resp
+        write!(f, "{}", resp)
     }
 }

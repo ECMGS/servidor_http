@@ -3,6 +3,7 @@ use servidor_http::{
     request::{self},
     router::{self, Router},
     HttpServer,
+    Error,
 };
 
 fn main() {
@@ -50,13 +51,18 @@ fn main() {
     router.handle_router(sub_router);
 
     server.attach_router(router);
-
+    let mut error_message_reg: Option<router::Route> = None; // necesario para que solo se reproduzca el mensaje una vez por error
     loop {
-        if let Err(servidor_http::Error::RouterError(
-            servidor_http::router::RouterError::RouteNotFound(msg),
+        if let Err(Error::RouterError( // Limpieza de código
+            router::RouterError::RouteNotFound(msg),
         )) = server.listen()
         {
-            println!("Route not found: {:?}", msg);
+            if Some(&msg) != error_message_reg.as_ref() { // Modificación para intentar que la consola no se llene continuamente de mensajes de error
+                println!("Route not found: {:?}", msg);
+                error_message_reg = Some(msg);
+            }
+        } else {
+            error_message_reg = None;
         }
     }
 }

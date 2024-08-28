@@ -25,7 +25,6 @@ use router::Router;
 #[derive(Debug)]
 pub struct HttpServer {
     listener: TcpListener,
-
     router: Option<Router>,
 }
 
@@ -101,7 +100,6 @@ impl HttpServer {
             listener,
             router: None,
         };
-
         Ok(server)
     }
 
@@ -113,7 +111,7 @@ impl HttpServer {
 
     /// Listens for incoming connections and handles them using the attached router. If no router is attached, it will return an error.
     ///
-    /// **This method will enter in a loop to check if any client has connected and will not return until an unhandled error appears**
+    /// **This method will enter a loop to check if any client has connected and will not return until an unhandled error appears**
     pub fn listen(&self) -> Result<(), Error> {
         if self.router.is_none() {
             return Err(Error::ServerError(ServerError::NoRouterAttached));

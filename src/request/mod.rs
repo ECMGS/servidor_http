@@ -193,7 +193,7 @@ pub enum RequestError {
     #[error("HTTP version not supported: {0}")]
     HttpVersionNotSupported(String),
 
-    /// The header is invalid (Doesn't follow the `"key":"value"` squeme).
+    /// The header is invalid (Doesn't follow the `"key":"value"` scheme).
     #[error("Invalid header")]
     InvalidHeader(String),
 
