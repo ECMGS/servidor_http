@@ -8,30 +8,82 @@ pub use crate::package::Package;
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Status {
+    // 1xx
+    Continue,
+    SwitchingProtocol,
+    Processing,
+    EarlyHints,
+    Checkpoint,
+
     // 2xx
     OK,
     Created,
     Accepted,
+    NonAuthoritativeInformation,
+    NoContent,
+    ResetContent,
+    PartialContent,
+    MultiStatus,
+    AlreadyReported,
+    IMUsed,
 
     // 3xx
+    MultipleChoice,
     MovedPermanently,
     Found,
     SeeOther,
     NotModified,
+    UseProxy,
+    Unused,
+    TemporaryRedirect,
+    PermanentRedirect,
 
     // 4xx
     BadRequest,
     Unauthorized,
+    PaymentRequired,
     Forbidden,
     NotFound,
     MethodNotAllowed,
+    NotAcceptable,
+    ProxyAuthenticationRequired,
+    RequestTimeout,
+    Conflict,
+    Gone,
+    LengthRequired,
+    PreconditionFailed,
+    PayloadTooLarge,
+    URITooLong,
+    UnsupportedMediaType,
+    RequestedRangeNotSatisfiable,
+    ExpectationFailed,
+    ImATeapot,
+    MisdirectedRequest,
+    UnprocessableEntity,
+    Locked,
+    FailedDependency,
+    TooEarly,
+    UpgradeRequired,
+    PreconditionRequired,
+    TooManyRequests,
+    RequestHeaderFieldsTooLarge,
+    UnavailableForLegalReasons,
 
     // 5xx
     InternalServerError,
     NotImplemented,
     BadGateway,
     ServiceUnavailable,
+    GatewayTimeout,
     HttpVersionNotSupported,
+    VariantAlsoNegotiates,
+    InsufficientStorage,
+    LoopDetected,
+    BandwidthLimitExceeded,
+    NotExtended,
+    NetworkAuthenticationRequired,
+    NotUpdated,
+    VersionMismatch,
 
     // Other status codes
     Other(u16, String),
@@ -76,30 +128,82 @@ impl TryFrom<u16> for Status {
 impl Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
+            // 1xx
+            Status::Continue => "100 Continue".to_string(),
+            Status::SwitchingProtocol => "101 Switching Protocols".to_string(),
+            Status::Processing => "102 Processing".to_string(),
+            Status::EarlyHints => "103 EarlyHints".to_string(),
+            Status::Checkpoint => "103 Checkpoint".to_string(),
+
             // 2xx
             Status::OK => "200 OK".to_string(),
             Status::Created => "201 Created".to_string(),
             Status::Accepted => "202 Accepted".to_string(),
+            Status::NonAuthoritativeInformation => "203 Non-Authoritative Information".to_string(),
+            Status::NoContent => "204 No Content".to_string(),
+            Status::ResetContent => "205 Reset Content".to_string(),
+            Status::PartialContent => "206 Partial Content".to_string(),
+            Status::MultiStatus => "207 Multi-Status".to_string(),
+            Status::AlreadyReported => "208 Already Reported".to_string(),
+            Status::IMUsed => "226 IM Used".to_string(),
 
             // 3xx
+            Status::MultipleChoice => "300 Multiple Choices".to_string(),
             Status::MovedPermanently => "301 Moved Permanently".to_string(),
             Status::Found => "302 Found".to_string(),
             Status::SeeOther => "303 See Other".to_string(),
             Status::NotModified => "304 Not Modified".to_string(),
+            Status::UseProxy => "305 Use Proxy".to_string(),
+            Status::Unused => "306 Unused".to_string(),
+            Status::TemporaryRedirect => "307 Temporary Redirect".to_string(),
+            Status::PermanentRedirect => "308 Permanent Redirect".to_string(),
 
             // 4xx
             Status::BadRequest => "400 Bad Request".to_string(),
             Status::Unauthorized => "401 Unauthorized".to_string(),
+            Status::PaymentRequired => "402 Payment Required".to_string(),
             Status::Forbidden => "403 Forbidden".to_string(),
             Status::NotFound => "404 Not Found".to_string(),
             Status::MethodNotAllowed => "405 Method Not Allowed".to_string(),
+            Status::NotAcceptable => "406 Not Acceptable".to_string(),
+            Status::ProxyAuthenticationRequired => "407 Proxy Authentication Required".to_string(),
+            Status::RequestTimeout => "408 Request Timeout".to_string(),
+            Status::Conflict => "409 Conflict".to_string(),
+            Status::Gone => "410 Gone".to_string(),
+            Status::LengthRequired => "411 Length Required".to_string(),
+            Status::PreconditionFailed => "412 Precondition Failed".to_string(),
+            Status::PayloadTooLarge => "413 Payload/Content Too Large".to_string(),
+            Status::URITooLong => "414 URI Too Long".to_string(),
+            Status::UnsupportedMediaType => "415 Unsupported Media Type".to_string(),
+            Status::RequestedRangeNotSatisfiable => "416 Requested Range Not Satisfiable".to_string(),
+            Status::ExpectationFailed => "417 Expectation Failed".to_string(),
+            Status::ImATeapot => "418 I'm A Teapot".to_string(),
+            Status::MisdirectedRequest => "421 Misdirected Request".to_string(),
+            Status::UnprocessableEntity => "422 Unprocessable Entity".to_string(),
+            Status::Locked => "423 Locked".to_string(),
+            Status::FailedDependency => "424 Failed Dependency".to_string(),
+            Status::TooEarly => "425 Too Early".to_string(),
+            Status::UpgradeRequired => "426 Upgrade Required".to_string(),
+            Status::PreconditionRequired => "428 Precondition Required".to_string(),
+            Status::TooManyRequests => "429 Too Many Requests".to_string(),
+            Status::RequestHeaderFieldsTooLarge => "431 Request Header Fields Too Large".to_string(),
+            Status::UnavailableForLegalReasons => "451 Unavailable For Legal Reasons".to_string(),
 
             // 5xx
             Status::InternalServerError => "500 Internal Server Error".to_string(),
             Status::NotImplemented => "501 Not Implemented".to_string(),
             Status::BadGateway => "502 Bad Gateway".to_string(),
             Status::ServiceUnavailable => "503 Service Unavailable".to_string(),
+            Status::GatewayTimeout => "504 Gateway Timeout".to_string(),
             Status::HttpVersionNotSupported => "505 HTTP Version Not Supported".to_string(),
+            Status::VariantAlsoNegotiates => "506 Variant Also Negotiates".to_string(),
+            Status::InsufficientStorage => "507 Insufficient Storage".to_string(),
+            Status::LoopDetected => "508 Loop Detected".to_string(),
+            Status::BandwidthLimitExceeded => "509 Bandwidth Limit Exceeded".to_string(),
+            Status::NotExtended => "510 Not Extended".to_string(),
+            Status::NetworkAuthenticationRequired => "511 Network Authentication Required".to_string(),
+            Status::NotUpdated => "512 Not Updated".to_string(),
+            Status::VersionMismatch => "513 Version Mismatch".to_string(),
 
             // Handle other status codes
             Status::Other(code, message) => format!("{} {}", code, message),
@@ -189,7 +293,7 @@ impl Response {
 
 impl Display for Response {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut resp = format!("HTTP/1.1 {}\r\n", self.status.to_string());
+        let mut resp = format!("HTTP/1.1 {}\r\n", self.status);
 
         for (key, value) in &self.headers {
             resp.push_str(&format!("{}: {}\r\n", key, value));

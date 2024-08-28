@@ -48,8 +48,8 @@ fn empty_request() {
     match req.unwrap_err() {
         servidor_http::Error::RequestError(
             servidor_http::request::RequestError::InvalidRequest(_),
-        ) => assert!(true),
-        _ => assert!(false),
+        ) => (),
+        _ => unreachable!(),
     }
 }
 
@@ -81,7 +81,7 @@ fn request_with_invalid_method() {
         servidor_http::Error::RequestError(
             servidor_http::request::RequestError::InvalidRequestMethod(mtd),
         ) => assert_eq!(mtd, method),
-        _ => assert!(false),
+        _ => unreachable!(),
     }
 }
 

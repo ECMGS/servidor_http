@@ -85,7 +85,7 @@ impl Router {
         let response = self
             .default_response
             .clone()
-            .unwrap_or_else(|| Response::new(Status::OK)); // Limpieza de código
+            .unwrap_or_else(|| Response::new(Status::OK));
 
         if let Some(handler) = self.routes.get(&request_route) {
             return Ok(handler(request, response));
