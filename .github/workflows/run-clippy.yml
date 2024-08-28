@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - master
+      - main
 env:
   RUSTFLAGS: -D warnings
 jobs:
