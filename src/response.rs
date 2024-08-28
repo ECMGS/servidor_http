@@ -74,7 +74,6 @@ impl TryFrom<u16> for Status {
 }
 
 impl Display for Status {
-    // Cambio a display para evitar implementar toString de forma directa
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
             // 2xx
@@ -189,7 +188,6 @@ impl Response {
 }
 
 impl Display for Response {
-    // Cambio a display para evitar implementar toString de forma directa
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut resp = format!("HTTP/1.1 {}\r\n", self.status.to_string());
 
