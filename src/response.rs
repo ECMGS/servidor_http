@@ -24,7 +24,7 @@ pub enum Status {
     ResetContent,
     PartialContent,
     MultiStatus,
-    AlredyReported,
+    AlreadyReported,
     IMUsed,
 
     // 3xx
@@ -144,7 +144,7 @@ impl Display for Status {
             Status::ResetContent => "205 Reset Content".to_string(),
             Status::PartialContent => "206 Partial Content".to_string(),
             Status::MultiStatus => "207 Multi-Status".to_string(),
-            Status::AlredyReported => "208 Alredy Reported".to_string(),
+            Status::AlreadyReported => "208 Already Reported".to_string(),
             Status::IMUsed => "226 IM Used".to_string(),
 
             // 3xx
