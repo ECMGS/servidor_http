@@ -22,6 +22,17 @@ fn main() {
         },
     );
 
+    router.handle_route(
+        router::Route::new(request::Method::GET, "/test"),
+        |_, mut res| {
+            let path = "tests/res/test.html";
+            res.send_file(path).unwrap();
+            res
+        },
+    );
+
+    router.handle_static("./tests/res/static");
+
     let mut sub_router = Router::new(String::from("/query"));
 
     sub_router.handle_route(
