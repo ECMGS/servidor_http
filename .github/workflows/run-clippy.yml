@@ -1,0 +1,15 @@
+name: Run all cargo tests
+run-name: ${{github.actor}} merge tests
+on:
+  pull_request:
+    branches:
+      - master
+env:
+  RUSTFLAGS: -D warnings
+jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: Run Clippy
+          run: cargo clippy --all-targets --all-features
