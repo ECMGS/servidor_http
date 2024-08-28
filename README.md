@@ -9,14 +9,15 @@ This project was created in order to understand better how the HTTP/1.x works as
 - Basic route handling
     * Routers
     * Different HTTP methods
+    * Static files and routes
 - Basic request handling
     * Handle querys
     * Handle request body
+- Basic response handling
+    * Added support for sending files
 
 ### What's going to be implemented?
 
 - Multiple threaded route handling
 - Connection rejection (Basic DoS handling, Slow loris...)
-- Serve static files
-- Send http files as response
 - Basic templating?
