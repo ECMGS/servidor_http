@@ -2,7 +2,7 @@ use servidor_http::{
     package::Package,
     request::{self},
     router::{self, Router},
-    Error, HttpServer, 
+    Error, HttpServer,
 };
 
 fn main() {
