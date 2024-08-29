@@ -17,7 +17,7 @@ macro_rules! generate_mime_functions {
                 .find(|&&(ext, _)| ext == extension)
                 .map(|&(_, mime)| mime)
         }
-        /// Function that returns the first extension asociated with a Mime, if the function doesn't find a solution, it will return a None.
+        /// Function that returns the first extension associated with a Mime, if the function doesn't find a solution, it will return a None.
         /// 
         /// # Arguments 
         /// 

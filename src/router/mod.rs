@@ -118,7 +118,7 @@ impl Router {
 
                 if file_path.exists() {
                     let mut res = Response::new(Status::OK);
-                    res.send_file(file_path).unwrap();
+                    res.send_file(file_path)?;
                     return Ok(res);
                 }
             }
