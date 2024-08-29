@@ -24,7 +24,7 @@ macro_rules! generate_mime_functions {
         /// * `mime_type`: MIME in plain text.
         /// 
         /// returns: Option<&str>: extension as &str or None
-        pub fn mime_to_extension(mime_type: &str) -> Option<&'static str> {
+        pub fn _mime_to_extension(mime_type: &str) -> Option<&'static str> {
             MIME_PAIRS.iter()
                 .find(|&&(_, mime)| mime == mime_type)
                 .map(|&(ext, _)| ext)
