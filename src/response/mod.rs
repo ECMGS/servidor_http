@@ -51,8 +51,6 @@ impl Response {
             .unwrap_or("");
 
         let content_type:&str=extension_to_mime(file_extension).unwrap();// Debugging
-        let content_ext:&str=mime_to_extension("image/jpeg").unwrap();// Debugging
-        println!("{}", content_ext);// Debugging
 
         self.add_header("Content-Type", content_type);
 

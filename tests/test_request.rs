@@ -8,7 +8,7 @@ fn request_without_headers() {
 
     assert_eq!(
         req,
-        request::Request::new(request::Method::GET, "/index.html", None)
+        request::Request::new(Method::GET, "/index.html", None)
     );
 }
 
@@ -18,7 +18,7 @@ fn request_with_headers() {
 User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)
 Host: www.example.com
 ";
-    let mut req = request::Request::new(request::Method::GET, "/index.html", None);
+    let mut req = request::Request::new(Method::GET, "/index.html", None);
     req.add_header(
         "User-Agent",
         "Mozilla/4.0 (compatible; MSIE5.01; Windows NT)",
@@ -34,7 +34,7 @@ fn request_with_body() {
 
 This is the body of the request.";
 
-    let mut req = request::Request::new(request::Method::POST, "/index.html", None);
+    let mut req = request::Request::new(Method::POST, "/index.html", None);
     req.set_body(String::from("This is the body of the request."));
 
     assert_eq!(request::Request::try_from(req_str).unwrap(), req);
@@ -47,7 +47,7 @@ fn empty_request() {
 
     match req.unwrap_err() {
         servidor_http::Error::RequestError(
-            servidor_http::request::RequestError::InvalidRequest(_),
+            request::RequestError::InvalidRequest(_),
         ) => (),
         _ => unreachable!(),
     }
@@ -79,7 +79,7 @@ fn request_with_invalid_method() {
 
     match req.unwrap_err() {
         servidor_http::Error::RequestError(
-            servidor_http::request::RequestError::InvalidRequestMethod(mtd),
+            request::RequestError::InvalidRequestMethod(mtd),
         ) => assert_eq!(mtd, method),
         _ => unreachable!(),
     }
@@ -119,7 +119,7 @@ fn request_with_query() {
 fn request_with_cookies() {
     let req_str = "GET /index.html HTTP/1.1\r\nCookie: cookie1=value1; cookie2=value2;\r\n";
 
-    let mut req = request::Request::try_from(req_str).unwrap();
+    let req = request::Request::try_from(req_str).unwrap();
 
     assert!(req.cookies.as_ref().is_some());
 

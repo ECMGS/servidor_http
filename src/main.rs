@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use servidor_http::{
     package::Package,
     request::{self},
