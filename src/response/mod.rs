@@ -5,7 +5,10 @@ use crate::package;
 pub use crate::package::Package;
 
 mod status;
+pub(crate) mod file_mime;
+
 pub use status::Status;
+use crate::response::file_mime::*;
 
 /// Struct responsible for handling the response of a request.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -47,26 +50,7 @@ impl Response {
             .and_then(|ext| ext.to_str())
             .unwrap_or("");
 
-        let content_type = match file_extension {
-            "html" => "text/html",
-            "css" => "text/css",
-            "js" => "text/javascript",
-            "json" => "application/json",
-            "png" => "image/png",
-            "jpg" | "jpeg" => "image/jpeg",
-            "gif" => "image/gif",
-            "svg" => "image/svg+xml",
-            "ico" => "image/x-icon",
-            "webp" => "image/webp",
-            "mp4" => "video/mp4",
-            "webm" => "video/webm",
-            "ogg" => "video/ogg",
-            "mp3" => "audio/mpeg",
-            "wav" => "audio/wav",
-            "flac" => "audio/flac",
-            "txt" => "text/plain",
-            _ => "application/octet-stream",
-        };
+        let content_type:&str=extension_to_mime(file_extension).unwrap();// Debugging
 
         self.add_header("Content-Type", content_type);
 

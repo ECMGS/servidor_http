@@ -189,7 +189,7 @@ pub enum RequestError {
     #[error("Invalid request\nRaw data:\n{0}")]
     InvalidRequest(String),
 
-    /// The reques method is invalid. Check [crate::request::RequestMethod] for valid methods.
+    /// The request method is invalid. Check [crate::request::RequestMethod] for valid methods.
     #[error("Invalid request method: {0}")]
     InvalidRequestMethod(String),
 

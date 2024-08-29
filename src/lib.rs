@@ -2,16 +2,16 @@
 
 //! Simple HTTP server crate that allows you to create a server and attach a router to it. The router will handle the requests and return the responses. The server listens on a given port and handles the requests using the attached router.
 
-/// Contains the [crate::package::Package] trait and its implementations for the [crate::request::Request] and [crate::response::Response] structs.
+/// Contains the [package::Package] trait and its implementations for the [request::Request] and [response::Response] structs.
 pub mod package;
 
-/// Contains the [crate::request::Request] struct, its implementations and [crate::request::RequestError] error handling enum.
+/// Contains the [request::Request] struct, its implementations and [request::RequestError] error handling enum.
 pub mod request;
 
-/// Contains the [crate::response::Response] struct, its implementations and [crate::response::Response] error handling enum.
+/// Contains the [response::Response] struct, its implementations and [response::Response] error handling enum.
 pub mod response;
 
-/// Contains the [crate::router::Router] struct, its implementations and [crate::router::RouterError] error handling enum.
+/// Contains the [Router] struct, its implementations and [router::RouterError] error handling enum.
 pub mod router;
 
 use std::{
@@ -31,19 +31,19 @@ pub struct HttpServer {
 /// Possible errors that can occur when using the crate.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    /// Checkout [std::io::Error] for more details
+    /// Checkout [io::Error] for more details
     #[error(transparent)]
     Io(#[from] io::Error),
 
-    /// Checkout [crate::ServerError] for more details
+    /// Checkout [ServerError] for more details
     #[error(transparent)]
     ServerError(#[from] ServerError),
 
-    /// Checkout [crate::router::RouterError] for more details
+    /// Checkout [router::RouterError] for more details
     #[error(transparent)]
     RouterError(#[from] router::RouterError),
 
-    /// Checkout [crate::request::RequestError] for more details
+    /// Checkout [request::RequestError] for more details
     #[error(transparent)]
     RequestError(#[from] request::RequestError),
 }
@@ -53,7 +53,7 @@ pub enum Error {
 pub enum ServerError {
     /// Error that occurs when trying to handle a connection without a router attached. Consider calling the [HttpServer::attach_router] method before calling the [HttpServer::listen] method.
     ///
-    /// # How this error can be prouced
+    /// # How this error can be produced
     ///
     /// ```rust
     /// use servidor_http::{HttpServer, Error, ServerError};

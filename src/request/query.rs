@@ -44,7 +44,7 @@ macro_rules! parse_query_string {
 }
 
 impl TryFrom<&str> for Query {
-    type Error = crate::Error;
+    type Error = Error;
 
     fn try_from(query_string: &str) -> Result<Self, Self::Error> {
         let mut query_map = HashMap::new();
