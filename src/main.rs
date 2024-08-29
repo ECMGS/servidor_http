@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use servidor_http::{
     package::Package,
     request::{self},
@@ -27,6 +29,24 @@ fn main() {
         |_, mut res| {
             let path = "tests/res/test.html";
             res.send_file(path).unwrap();
+            res
+        },
+    );
+
+    router.handle_route(
+        router::Route::new(request::Method::GET, "/cookie"),
+        |req, mut res| {
+            let mut cookie = String::from("No cookie");
+
+            if let Some(cookies) = req.cookies {
+                if let Some(cookie_value) = cookies.get("cookie") {
+                    cookie = cookie_value.clone();
+                }
+            }
+
+            res.set_body(format!("<h1>Cookie: {}</h1>", cookie));
+            res.add_header("Content-Type", "text/html");
+            res.set_session_cookie("cookie", "got cookie");
             res
         },
     );

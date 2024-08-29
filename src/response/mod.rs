@@ -19,7 +19,9 @@ pub struct Response {
     headers: HashMap<String, String>,
     body: Option<String>,
 }
+
 package::generate_package_getters_setters!(Response[String]);
+
 impl Response {
     /// Generates a new response with the given status.
     pub fn new(status: Status) -> Self {
@@ -34,7 +36,7 @@ impl Response {
     pub fn set_session_cookie(&mut self, name: &str, value: &str) {
         self.add_header("Set-Cookie", &format!("{}={}; HttpOnly", name, value));
     }
-    
+
     /// Sets the body of the response to the contents of a file.
     pub fn send_file<P>(&mut self, path: P) -> Result<(), crate::Error>
     where
