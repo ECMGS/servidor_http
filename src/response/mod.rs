@@ -4,11 +4,11 @@ use crate::package;
 
 pub use crate::package::Package;
 
-mod status;
 pub(crate) mod file_mime;
+mod status;
 
-pub use status::Status;
 use crate::response::file_mime::*;
+pub use status::Status;
 
 /// Struct responsible for handling the response of a request.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -32,6 +32,12 @@ impl Response {
         }
     }
 
+    /// Redirects the user to the specified path.
+    pub fn redirect(&mut self, location: &str) {
+        self.add_header("Location", location);
+        self.status = Status::MovedPermanently;
+    }
+
     /// Sets a new session cookie (with the HttpOnly flag).
     pub fn set_session_cookie(&mut self, name: &str, value: &str) {
         self.add_header("Set-Cookie", &format!("{}={}; HttpOnly", name, value));
@@ -50,7 +56,7 @@ impl Response {
             .and_then(|ext| ext.to_str())
             .unwrap_or("");
 
-        let content_type:&str=extension_to_mime(file_extension).unwrap();// Debugging
+        let content_type: &str = extension_to_mime(file_extension).unwrap(); // Debugging
 
         self.add_header("Content-Type", content_type);
 

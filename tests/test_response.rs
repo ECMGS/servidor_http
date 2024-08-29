@@ -81,3 +81,14 @@ fn response_with_cookies() {
 
     assert!(response_str.contains("Set-Cookie: test=ok"));
 }
+
+#[test]
+fn response_with_redirect() {
+    let mut response = Response::new(Status::Processing);
+    response.redirect("/test");
+
+    let response_str = response.to_string();
+
+    assert!(response_str.contains("HTTP/1.1 301 Moved Permanently"));
+    assert!(response_str.contains("Location: /test"));
+}

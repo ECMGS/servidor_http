@@ -32,6 +32,14 @@ fn main() {
     );
 
     router.handle_route(
+        router::Route::new(request::Method::GET, "/redirect"),
+        |_, mut res| {
+            res.redirect("/test");
+            res
+        },
+    );
+
+    router.handle_route(
         router::Route::new(request::Method::GET, "/cookie"),
         |req, mut res| {
             let mut cookie = String::from("No cookie");
