@@ -9,11 +9,11 @@ pub mod package;
 pub mod request;
 
 /// Contains the [crate::response::Response] struct, its implementations and [crate::response::Response] error handling enum.
-pub mod response;
+
 
 /// Contains the [crate::router::Router] struct, its implementations and [crate::router::RouterError] error handling enum.
 pub mod router;
-pub(crate) mod file_mime;
+pub mod response;
 
 use std::{
     io::{self, prelude::*, BufReader},

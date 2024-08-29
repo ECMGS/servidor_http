@@ -1,9 +1,4 @@
-use std::{collections::HashMap, fmt::Display, path::Path};
-
-use crate::package;
-
-use crate::file_mime::{extension_to_mime, mime_to_extension};
-pub use package::Package;
+use std::fmt::Display;
 
 /// Contains all the supported response status codes.
 #[allow(missing_docs)]
@@ -176,7 +171,9 @@ impl Display for Status {
             Status::PayloadTooLarge => "413 Payload/Content Too Large".to_string(),
             Status::URITooLong => "414 URI Too Long".to_string(),
             Status::UnsupportedMediaType => "415 Unsupported Media Type".to_string(),
-            Status::RequestedRangeNotSatisfiable => "416 Requested Range Not Satisfiable".to_string(),
+            Status::RequestedRangeNotSatisfiable => {
+                "416 Requested Range Not Satisfiable".to_string()
+            }
             Status::ExpectationFailed => "417 Expectation Failed".to_string(),
             Status::ImATeapot => "418 I'm A Teapot".to_string(),
             Status::MisdirectedRequest => "421 Misdirected Request".to_string(),
@@ -187,7 +184,9 @@ impl Display for Status {
             Status::UpgradeRequired => "426 Upgrade Required".to_string(),
             Status::PreconditionRequired => "428 Precondition Required".to_string(),
             Status::TooManyRequests => "429 Too Many Requests".to_string(),
-            Status::RequestHeaderFieldsTooLarge => "431 Request Header Fields Too Large".to_string(),
+            Status::RequestHeaderFieldsTooLarge => {
+                "431 Request Header Fields Too Large".to_string()
+            }
             Status::UnavailableForLegalReasons => "451 Unavailable For Legal Reasons".to_string(),
 
             // 5xx
@@ -202,7 +201,9 @@ impl Display for Status {
             Status::LoopDetected => "508 Loop Detected".to_string(),
             Status::BandwidthLimitExceeded => "509 Bandwidth Limit Exceeded".to_string(),
             Status::NotExtended => "510 Not Extended".to_string(),
-            Status::NetworkAuthenticationRequired => "511 Network Authentication Required".to_string(),
+            Status::NetworkAuthenticationRequired => {
+                "511 Network Authentication Required".to_string()
+            }
             Status::NotUpdated => "512 Not Updated".to_string(),
             Status::VersionMismatch => "513 Version Mismatch".to_string(),
 
@@ -210,85 +211,5 @@ impl Display for Status {
             Status::Other(code, message) => format!("{} {}", code, message),
         };
         write!(f, "{}", str)
-    }
-}
-
-/// Struct responsible for handling the response of a request.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Response {
-    /// Status of the response
-    pub status: Status,
-
-    headers: HashMap<String, String>,
-    body: Option<String>,
-}
-
-package::generate_package_getters_setters!(Response[String]);
-
-impl Response {
-    /// Generates a new response with the given status.
-    pub fn new(status: Status) -> Self {
-        Response {
-            status,
-            headers: HashMap::new(),
-            body: None,
-        }
-    }
-
-    /// Sets the body of the response to the contents of a file.
-    pub fn send_file<P>(&mut self, path: P) -> Result<(), crate::Error>
-    where
-        P: AsRef<Path>,
-    {
-        let content = std::fs::read_to_string(&path)?;
-
-        let file_extension = path
-            .as_ref()
-            .extension()
-            .and_then(|ext| ext.to_str())
-            .unwrap_or("");
-
-        let content_type:&str=extension_to_mime(file_extension).unwrap();// Debugging
-        let content_ext:&str=mime_to_extension("image/jpeg").unwrap();// Debugging
-        println!("{}", content_ext);// Debugging
-        
-        self.add_header("Content-Type", content_type);
-
-        self.set_body(content);
-
-        Ok(())
-    }
-}
-
-impl Response {
-    pub(crate) fn pack(&mut self) {
-        let content_length = match self.body.as_ref() {
-            Some(body) => body.len().to_string(),
-            None => "0".to_string(),
-        };
-
-        self.add_header("Content-Length", &content_length);
-
-        if !self.has_header("Content-Type") {
-            self.add_header("Content-Type", "text/plain");
-        }
-    }
-}
-
-impl Display for Response {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut resp = format!("HTTP/1.1 {}\r\n", self.status);
-
-        for (key, value) in &self.headers {
-            resp.push_str(&format!("{}: {}\r\n", key, value));
-        }
-
-        resp.push_str("\r\n");
-
-        if let Some(body) = &self.body {
-            resp.push_str(body);
-        }
-
-        write!(f, "{}", resp)
     }
 }
