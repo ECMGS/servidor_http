@@ -1,6 +1,6 @@
 ## Servidor HTTP
 
-This project was created in order to understand better how the HTTP/1.x works as well as learn a bit more about the Rust programming language. It is a personal project and isn't ready for any production enviroment, as the project is created with educational purposes, trying to use the least amount of external libraries possible.
+This project was created in order to understand better how the HTTP/1.x works as well as learn a bit more about the Rust programming language. It is a personal project and isn't ready for any production environment, as the project is created with educational purposes, trying to use the least amount of external libraries possible.
 
 ### What works?
 
