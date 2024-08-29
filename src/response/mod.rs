@@ -10,6 +10,7 @@ pub(crate) mod file_mime;
 pub use status::Status;
 use crate::response::file_mime::*;
 
+/// Struct responsible for handling the response of a request.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Response {
     /// Status of the response
