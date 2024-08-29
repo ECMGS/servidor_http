@@ -50,6 +50,12 @@ impl TryFrom<&str> for CookieList {
     }
 }
 
+impl Default for CookieList {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CookieList {
     /// Generates a new cookie list.
     pub fn new() -> Self {
