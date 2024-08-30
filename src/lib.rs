@@ -81,7 +81,7 @@ pub enum ServerError {
 /// router.handle_route(
 ///     Route::new(Method::GET, "/"),
 ///     |req, mut res| {
-///         res.set_body(String::from("Hello World"));
+///         res.set_body_string(String::from("Hello World"));
 ///         res
 ///     }
 /// );
@@ -161,8 +161,14 @@ impl HttpServer {
 
         resp.pack();
 
-        stream.write_all(resp.to_string().as_bytes())?;
+        stream.write_all(&resp.to_binary())?;
 
         Ok(())
     }
+}
+
+/// Trait that represents a binary representation of a struct. It should return a Vec<u8> with the binary representation of the struct. Used to send responses to the client.
+pub trait BinaryRepresentation {
+    /// Returns a Vec<u8> with the binary representation of the struct.
+    fn to_binary(&self) -> Vec<u8>;
 }

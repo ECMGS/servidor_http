@@ -36,7 +36,7 @@ fn response_with_headers_to_string() {
 #[test]
 fn response_with_body_to_string() {
     let mut response = Response::new(Status::OK);
-    response.set_body(String::from("Hello, world!"));
+    response.set_body_string(String::from("Hello, world!"));
 
     let response_str = "HTTP/1.1 200 OK\r\n\r\nHello, world!";
     assert_eq!(response.to_string(), response_str);
@@ -50,7 +50,7 @@ fn response_with_headers_and_body_to_string() {
 
     let body = "Test body";
 
-    response.set_body(String::from(body));
+    response.set_body_string(String::from(body));
 
     let response_str = response.to_string();
     let mut lines = response_str.lines();

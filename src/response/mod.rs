@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::Display, path::Path};
 
-use crate::package;
+use crate::{package, BinaryRepresentation};
 
 pub use crate::package::Package;
 
@@ -17,10 +17,10 @@ pub struct Response {
     pub status: Status,
 
     headers: HashMap<String, String>,
-    body: Option<String>,
+    body: Option<Vec<u8>>,
 }
 
-package::generate_package_getters_setters!(Response[String]);
+package::generate_package_getters_setters!(Response[Vec<u8>]);
 
 impl Response {
     /// Generates a new response with the given status.
@@ -38,6 +38,12 @@ impl Response {
         self.status = Status::MovedPermanently;
     }
 
+    // Should be moved to the package trait
+    /// Sets the body of the response to a string.
+    pub fn set_body_string(&mut self, body: String) {
+        self.set_body(body.into_bytes());
+    }
+
     /// Sets a new session cookie (with the HttpOnly flag).
     pub fn set_session_cookie(&mut self, name: &str, value: &str) {
         self.add_header("Set-Cookie", &format!("{}={}; HttpOnly", name, value));
@@ -48,7 +54,7 @@ impl Response {
     where
         P: AsRef<Path>,
     {
-        let content = std::fs::read_to_string(&path)?;
+        let content = std::fs::read(&path)?;
 
         let file_extension = path
             .as_ref()
@@ -81,6 +87,7 @@ impl Response {
     }
 }
 
+/// Implementation of the Display trait for the Response struct. WILL REPLACE NON VALID ASCII CHARS WITH "�".
 impl Display for Response {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut resp = format!("HTTP/1.1 {}\r\n", self.status);
@@ -92,9 +99,27 @@ impl Display for Response {
         resp.push_str("\r\n");
 
         if let Some(body) = &self.body {
-            resp.push_str(body);
+            resp.push_str(String::from_utf8_lossy(body).as_ref());
         }
 
         write!(f, "{}", resp)
+    }
+}
+
+impl BinaryRepresentation for Response {
+    fn to_binary(&self) -> Vec<u8> {
+        let mut resp = format!("HTTP/1.1 {}\r\n", self.status).into_bytes();
+
+        for (key, value) in &self.headers {
+            resp.extend_from_slice(format!("{}: {}\r\n", key, value).as_bytes());
+        }
+
+        resp.extend_from_slice("\r\n".as_bytes());
+
+        if let Some(body) = &self.body {
+            resp.extend_from_slice(body);
+        }
+
+        resp
     }
 }
