@@ -1,4 +1,3 @@
-
 macro_rules! generate_mime_functions {
     ($($ext:expr => $mime:expr),*) => {
         const MIME_PAIRS: &[(&str, &str)] = &[
@@ -14,15 +13,15 @@ macro_rules! generate_mime_functions {
         /// returns: Option<&str>: MIME as &str or None
         pub fn extension_to_mime(extension: &str) -> Option<&'static str> {
             MIME_PAIRS.iter()
-                .find(|&&(ext, _)| ext == extension)
+                .find(|&&(ext, _)| ext == extension.to_lowercase())
                 .map(|&(_, mime)| mime)
         }
         /// Function that returns the first extension associated with a Mime, if the function doesn't find a solution, it will return a None.
-        /// 
-        /// # Arguments 
-        /// 
+        ///
+        /// # Arguments
+        ///
         /// * `mime_type`: MIME in plain text.
-        /// 
+        ///
         /// returns: Option<&str>: extension as &str or None
         pub fn _mime_to_extension(mime_type: &str) -> Option<&'static str> {
             MIME_PAIRS.iter()
