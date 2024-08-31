@@ -47,12 +47,12 @@ fn main() {
         |req, mut res| {
             let mut cookie = String::from("No cookie");
 
-            if let Some(cookies) = req.cookies {
-                if let Some(cookie_value) = cookies.get("cookie") {
-                    cookie = cookie_value.clone();
-                }
+            let cookies = req.cookies;
+            
+            if let Some(cookie_value) = cookies.get("cookie") {
+                cookie = cookie_value.clone();
             }
-
+            
             res.set_body(format!("<h1>Cookie: {}</h1>", cookie).into_bytes());
             res.add_header("Content-Type", "text/html");
             res.set_session_cookie("cookie", "got cookie");

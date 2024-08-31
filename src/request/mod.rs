@@ -23,7 +23,7 @@ pub struct Request {
     pub query: Option<Query>,
 
     /// The cookies of the request.
-    pub cookies: Option<CookieList>,
+    pub cookies: CookieList,
 
     headers: HashMap<String, String>,
     body: Option<String>,
@@ -40,7 +40,7 @@ impl Request {
             path,
             headers: HashMap::new(),
             query,
-            cookies: None,
+            cookies: CookieList::new(),
             body: None,
         }
     }
@@ -54,7 +54,7 @@ impl From<Route> for Request {
 
 impl TryFrom<&str> for Request {
     type Error = crate::Error;
-
+    
     fn try_from(req: &str) -> Result<Self, Self::Error> {
         let mut lines = req.lines();
 
@@ -168,7 +168,7 @@ impl TryFrom<&str> for Request {
         if let Some(cookies) = request.get_header_list().get("Cookie") {
             let cookie_list = CookieList::try_from(cookies.as_str())?;
 
-            request.cookies = Some(cookie_list);
+            request.cookies = cookie_list;
         }
 
         let body_collection = lines.collect::<Vec<&str>>();
