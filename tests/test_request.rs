@@ -6,10 +6,7 @@ fn request_without_headers() {
     let req_str = "GET /index.html HTTP/1.1\n";
     let req = request::Request::try_from(req_str).unwrap();
 
-    assert_eq!(
-        req,
-        request::Request::new(Method::GET, "/index.html", None)
-    );
+    assert_eq!(req, request::Request::new(Method::GET, "/index.html", None));
 }
 
 #[test]
@@ -35,7 +32,7 @@ fn request_with_body() {
 This is the body of the request.";
 
     let mut req = request::Request::new(Method::POST, "/index.html", None);
-    req.set_body(String::from("This is the body of the request."));
+    req.set_body("This is the body of the request.".as_bytes().to_vec());
 
     assert_eq!(request::Request::try_from(req_str).unwrap(), req);
 }
@@ -46,9 +43,7 @@ fn empty_request() {
     let req = request::Request::try_from(req_str);
 
     match req.unwrap_err() {
-        servidor_http::Error::RequestError(
-            request::RequestError::InvalidRequest(_),
-        ) => (),
+        servidor_http::Error::RequestError(request::RequestError::InvalidRequest(_)) => (),
         _ => unreachable!(),
     }
 }
@@ -78,9 +73,9 @@ fn request_with_invalid_method() {
     let req = request::Request::try_from(req_str.as_str());
 
     match req.unwrap_err() {
-        servidor_http::Error::RequestError(
-            request::RequestError::InvalidRequestMethod(mtd),
-        ) => assert_eq!(mtd, method),
+        servidor_http::Error::RequestError(request::RequestError::InvalidRequestMethod(mtd)) => {
+            assert_eq!(mtd, method)
+        }
         _ => unreachable!(),
     }
 }
@@ -123,12 +118,6 @@ fn request_with_cookies() {
 
     assert!(req.cookies.contains("cookie1") && req.cookies.contains("cookie2"));
 
-    assert_eq!(
-        req.cookies.get("cookie1").unwrap(),
-        "value1"
-    );
-    assert_eq!(
-        req.cookies.get("cookie2").unwrap(),
-        "value2"
-    );
+    assert_eq!(req.cookies.get("cookie1").unwrap(), "value1");
+    assert_eq!(req.cookies.get("cookie2").unwrap(), "value2");
 }

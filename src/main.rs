@@ -13,13 +13,7 @@ fn main() {
     router.handle_route(
         router::Route::new(request::Method::GET, "/"),
         |req, mut res| {
-            res.set_body(
-                format!(
-                    "<h1>{}</h1>",
-                    req.get_body().unwrap_or(String::from("No body Received"))
-                )
-                .into_bytes(),
-            );
+            res.set_body(format!("<h1>{}</h1>", req.get_body_string()).into_bytes());
             res.add_header("Content-Type", "text/html");
             res
         },
@@ -48,11 +42,11 @@ fn main() {
             let mut cookie = String::from("No cookie");
 
             let cookies = req.cookies;
-            
+
             if let Some(cookie_value) = cookies.get("cookie") {
                 cookie = cookie_value.clone();
             }
-            
+
             res.set_body(format!("<h1>Cookie: {}</h1>", cookie).into_bytes());
             res.add_header("Content-Type", "text/html");
             res.set_session_cookie("cookie", "got cookie");

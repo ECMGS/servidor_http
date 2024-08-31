@@ -129,14 +129,14 @@ impl HttpServer {
     fn handle_connection(mut stream: TcpStream, router: Router) -> Result<(), Error> {
         let mut buf_reader = BufReader::new(&mut stream);
 
-        let mut request_string = String::new();
+        let mut request_bytes: Vec<u8> = Vec::new();
         let mut body_size = 0;
 
         loop {
             let mut line_str = String::new();
             let bytes_read = buf_reader.read_line(&mut line_str)?;
 
-            request_string.push_str(&line_str);
+            request_bytes.write(line_str.as_bytes())?;
 
             if body_size == 0 && line_str.to_lowercase().contains("content-length") {
                 let mut parts = line_str.split(':');
@@ -153,9 +153,9 @@ impl HttpServer {
         let mut body_bytes_buffer = vec![0; body_size];
         buf_reader.read_exact(&mut body_bytes_buffer)?;
 
-        request_string.push_str(&String::from_utf8_lossy(&body_bytes_buffer));
+        request_bytes.write(&body_bytes_buffer)?;
 
-        let request = request::Request::try_from(request_string.as_str())?;
+        let request = request::Request::try_from(request_bytes)?;
 
         let mut resp = router.handle_request(request)?;
 
