@@ -121,14 +121,14 @@ fn request_with_cookies() {
 
     let req = request::Request::try_from(req_str).unwrap();
 
-    assert!(req.cookies.as_ref().is_some());
+    assert!(req.cookies.contains("cookie1") && req.cookies.contains("cookie2"));
 
     assert_eq!(
-        req.cookies.as_ref().unwrap().get("cookie1").unwrap(),
+        req.cookies.get("cookie1").unwrap(),
         "value1"
     );
     assert_eq!(
-        req.cookies.as_ref().unwrap().get("cookie2").unwrap(),
+        req.cookies.get("cookie2").unwrap(),
         "value2"
     );
 }

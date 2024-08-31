@@ -155,7 +155,7 @@ impl HttpServer {
 
         request_string.push_str(&String::from_utf8_lossy(&body_bytes_buffer));
 
-        let request = request::Request::try_from(request_string.as_str()).unwrap();
+        let request = request::Request::try_from(request_string.as_str())?;
 
         let mut resp = router.handle_request(request)?;
 
