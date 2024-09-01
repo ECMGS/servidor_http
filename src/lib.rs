@@ -136,7 +136,7 @@ impl HttpServer {
             let mut line_str = String::new();
             let bytes_read = buf_reader.read_line(&mut line_str)?;
 
-            request_bytes.write(line_str.as_bytes())?;
+            let _ = request_bytes.write(line_str.as_bytes());
 
             if body_size == 0 && line_str.to_lowercase().contains("content-length") {
                 let mut parts = line_str.split(':');
@@ -153,7 +153,7 @@ impl HttpServer {
         let mut body_bytes_buffer = vec![0; body_size];
         buf_reader.read_exact(&mut body_bytes_buffer)?;
 
-        request_bytes.write(&body_bytes_buffer)?;
+        let _ = request_bytes.write(&body_bytes_buffer);
 
         let request = request::Request::try_from(request_bytes)?;
 
