@@ -52,167 +52,8 @@ impl Request {
             None => String::new(),
         }
     }
-}
 
-impl From<Route> for Request {
-    fn from(path: Route) -> Self {
-        Request::new(path.method, path.path.as_str(), None)
-    }
-}
-
-impl TryFrom<&str> for Request {
-    type Error = crate::Error;
-
-    fn try_from(req: &str) -> Result<Self, Self::Error> {
-        let mut lines = req.lines();
-
-        let mut request = match lines.next() {
-            Some(request_line) => {
-                let mut request_line_parts = request_line.split_whitespace();
-
-                let request_method_string = match request_line_parts.next() {
-                    Some(method) => method,
-                    None => {
-                        return Err(crate::Error::RequestError(RequestError::InvalidRequest(
-                            String::from(req),
-                        )))
-                    }
-                };
-
-                let request_method = match Method::try_from(request_method_string) {
-                    Ok(method) => method,
-                    Err(_) => {
-                        return Err(crate::Error::RequestError(
-                            RequestError::InvalidRequestMethod(String::from(request_method_string)),
-                        ))
-                    }
-                };
-
-                let request_path_with_query = match request_line_parts.next() {
-                    Some(url) => url,
-                    None => return Err(crate::Error::RequestError(RequestError::NoUrlFound)),
-                };
-
-                let (request_path, query) = match request_path_with_query.contains('?') {
-                    true => {
-                        let mut url_and_query = request_path_with_query.splitn(2, '?');
-
-                        let request_path = match url_and_query.next() {
-                            Some(url) => url,
-                            None => {
-                                return Err(crate::Error::RequestError(RequestError::NoUrlFound))
-                            }
-                        };
-
-                        let query_string = match url_and_query.next() {
-                            Some(query) => query,
-                            None => {
-                                return Err(crate::Error::RequestError(RequestError::QueryError(
-                                    request_path_with_query.to_string(),
-                                )))
-                            }
-                        };
-
-                        let query = Query::try_from(query_string)?;
-
-                        (request_path, Some(query))
-                    }
-                    false => (request_path_with_query, None),
-                };
-
-                let http_version = match request_line_parts.next() {
-                    Some(version) => version,
-                    None => {
-                        return Err(crate::Error::RequestError(RequestError::InvalidRequest(
-                            String::from(req),
-                        )))
-                    }
-                };
-
-                if !http_version.contains("HTTP/") {
-                    return Err(crate::Error::RequestError(
-                        RequestError::HttpVersionNotSupported(String::from(http_version)),
-                    ));
-                }
-
-                Request::new(request_method, request_path, query)
-            }
-            None => {
-                return Err(crate::Error::RequestError(RequestError::InvalidRequest(
-                    String::from(req),
-                )));
-            }
-        };
-
-        for header in lines.by_ref() {
-            if header.is_empty() {
-                break;
-            }
-
-            let mut header_parts = header.splitn(2, ':');
-
-            let header_key = match header_parts.next() {
-                Some(key) => key,
-                None => {
-                    return Err(crate::Error::RequestError(RequestError::InvalidHeader(
-                        String::from(header),
-                    )))
-                }
-            };
-
-            let header_value = match header_parts.next() {
-                Some(value) => value.trim(),
-                None => {
-                    return Err(crate::Error::RequestError(RequestError::InvalidHeader(
-                        String::from(header),
-                    )))
-                }
-            };
-
-            request.add_header(header_key, header_value);
-        }
-
-        let _a = request.get_header_list().get("Cookie");
-        if let Some(cookies) = request.get_header_list().get("Cookie") {
-            let cookie_list = CookieList::try_from(cookies.as_str())?;
-
-            request.cookies = cookie_list;
-        }
-
-        let body_collection = lines.collect::<Vec<&str>>();
-
-        if !body_collection.is_empty() {
-            request.set_body(body_collection.join("\n").as_bytes().to_vec());
-        }
-
-        Ok(request)
-    }
-}
-
-impl TryFrom<Vec<u8>> for Request {
-    type Error = crate::Error;
-
-    fn try_from(binary_data: Vec<u8>) -> Result<Self, Self::Error> {
-        let header;
-        let body;
-
-        let split_sequence = "\r\n\r\n".as_bytes();
-
-        if let Some(pos) = binary_data
-            .windows(split_sequence.len())
-            .position(|window| window == split_sequence)
-        {
-            let (header_reference, body_reference) = binary_data.split_at(pos);
-
-            header = header_reference.to_vec();
-            body = body_reference[split_sequence.len()..].to_vec();
-        } else {
-            header = binary_data;
-            body = Vec::new();
-        }
-
-        let header_string = String::from_utf8_lossy(&header);
-
+    fn parse_header_str(header_string: &str) -> Result<Request, crate::Error> {
         let mut lines = header_string.lines();
 
         let mut request = match lines.next() {
@@ -327,6 +168,56 @@ impl TryFrom<Vec<u8>> for Request {
 
             request.cookies = cookie_list;
         }
+
+        Ok(request)
+    }
+}
+
+impl From<Route> for Request {
+    fn from(path: Route) -> Self {
+        Request::new(path.method, path.path.as_str(), None)
+    }
+}
+
+impl TryFrom<&str> for Request {
+    type Error = crate::Error;
+
+    fn try_from(req: &str) -> Result<Self, Self::Error> {
+        let request = Request::parse_header_str(req)?;
+
+        Ok(request)
+    }
+}
+
+macro_rules! split_sequence {
+    ($sequence:expr, $($separator:expr),*) => {{
+        let mut header = Vec::new();
+        let mut body = $sequence.to_vec();
+
+        $(
+            if let Some(pos) = body
+                .windows($separator.len())
+                .position(|window| window == $separator)
+            {
+                let (header_reference, body_reference) = body.split_at(pos);
+                header = header_reference.to_vec();
+                body = body_reference[$separator.len()..].to_vec();
+            }
+        )*
+
+        (header, body)
+    }};
+}
+
+impl TryFrom<Vec<u8>> for Request {
+    type Error = crate::Error;
+
+    fn try_from(binary_data: Vec<u8>) -> Result<Self, Self::Error> {
+        let (header, body) = split_sequence!(binary_data, b"\r\n\r\n", b"\n\n");
+
+        let header_string = String::from_utf8_lossy(&header);
+
+        let mut request = Request::parse_header_str(header_string.as_ref())?;
 
         request.set_body(body);
 

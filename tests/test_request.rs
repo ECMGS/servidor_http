@@ -34,7 +34,10 @@ This is the body of the request.";
     let mut req = request::Request::new(Method::POST, "/index.html", None);
     req.set_body("This is the body of the request.".as_bytes().to_vec());
 
-    assert_eq!(request::Request::try_from(req_str).unwrap(), req);
+    assert_eq!(
+        request::Request::try_from(req_str.as_bytes().to_vec()).unwrap(),
+        req
+    );
 }
 
 #[test]
