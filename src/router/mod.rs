@@ -112,7 +112,7 @@ impl Router {
             }
         };
 
-        if let Some(subrouter) = self.routers.get(format!("/{}", route_segment).as_str()) {
+        if let Some(subrouter) = self.routers.get(format!("/{route_segment}").as_str()) {
             return subrouter.handle_request(request);
         }
 

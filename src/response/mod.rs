@@ -46,7 +46,7 @@ impl Response {
 
     /// Sets a new session cookie (with the HttpOnly flag).
     pub fn set_session_cookie(&mut self, name: &str, value: &str) {
-        self.add_header("Set-Cookie", &format!("{}={}; HttpOnly", name, value));
+        self.add_header("Set-Cookie", &format!("{name}={value}; HttpOnly"));
     }
 
     /// Changes the status of the response.
@@ -98,7 +98,7 @@ impl Display for Response {
         let mut resp = format!("HTTP/1.1 {}\r\n", self.status);
 
         for (key, value) in &self.headers {
-            resp.push_str(&format!("{}: {}\r\n", key, value));
+            resp.push_str(&format!("{key}: {value}\r\n"));
         }
 
         resp.push_str("\r\n");
@@ -107,7 +107,7 @@ impl Display for Response {
             resp.push_str(String::from_utf8_lossy(body).as_ref());
         }
 
-        write!(f, "{}", resp)
+        write!(f, "{resp}")
     }
 }
 
@@ -116,7 +116,7 @@ impl BinaryRepresentation for Response {
         let mut resp = format!("HTTP/1.1 {}\r\n", self.status).into_bytes();
 
         for (key, value) in &self.headers {
-            resp.extend_from_slice(format!("{}: {}\r\n", key, value).as_bytes());
+            resp.extend_from_slice(format!("{key}: {value}\r\n").as_bytes());
         }
 
         resp.extend_from_slice("\r\n".as_bytes());

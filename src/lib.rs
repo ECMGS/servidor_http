@@ -94,7 +94,7 @@ pub enum ServerError {
 impl HttpServer {
     /// Creates a new instance of the [HttpServer] struct that listens on the given port. Can return an io error if the port is already in use
     pub fn new(port: u16) -> Result<Self, Error> {
-        let listener = TcpListener::bind(format!("0.0.0.0:{}", port))?;
+        let listener = TcpListener::bind(format!("0.0.0.0:{port}"))?;
 
         let server = HttpServer {
             listener,

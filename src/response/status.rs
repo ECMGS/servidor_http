@@ -208,8 +208,8 @@ impl Display for Status {
             Status::VersionMismatch => "513 Version Mismatch".to_string(),
 
             // Handle other status codes
-            Status::Other(code, message) => format!("{} {}", code, message),
+            Status::Other(code, message) => format!("{code} {message}"),
         };
-        write!(f, "{}", str)
+        write!(f, "{str}")
     }
 }
