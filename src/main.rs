@@ -2,7 +2,7 @@ use servidor_http::{
     package::Package,
     request::{self},
     router::{self, Router},
-    Error, HttpServer,
+    HttpServer,
 };
 
 fn main() {
@@ -72,16 +72,12 @@ fn main() {
 
     router.handle_router(sub_router);
 
+    router.handle_not_found(|_, mut res| {
+        res.set_body_string(String::from("404 Not Found"));
+        res
+    });
+
     server.attach_router(router);
-    let mut error_message_reg: Option<router::Route> = None;
-    loop {
-        if let Err(Error::RouterError(router::RouterError::RouteNotFound(msg))) = server.listen() {
-            if Some(&msg) != error_message_reg.as_ref() {
-                println!("Route not found: {:?}", msg);
-                error_message_reg = Some(msg);
-            }
-        } else {
-            error_message_reg = None;
-        }
-    }
+
+    server.listen().unwrap();
 }

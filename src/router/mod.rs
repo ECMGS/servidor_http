@@ -25,6 +25,8 @@ pub struct Router {
 
     default_response: Option<Response>,
 
+    not_found_handler: Option<fn(Request, Response) -> Response>,
+
     static_path: Option<PathBuf>,
 }
 
@@ -42,6 +44,7 @@ impl Router {
             routes: HashMap::new(),
             routers: HashMap::new(),
             default_response: None,
+            not_found_handler: None,
             static_path: None,
         }
     }
@@ -64,7 +67,18 @@ impl Router {
         self.static_path = Some(PathBuf::from(path.as_ref()));
     }
 
-    fn not_found_handler(request: Request) -> Result<Response, Error> {
+    /// Handles a not found route, this will be called when a route is not found
+    pub fn handle_not_found(&mut self, handler: fn(Request, Response) -> Response) {
+        self.not_found_handler = Some(handler);
+    }
+
+    fn not_found_handler(&self, request: Request, response: Response) -> Result<Response, Error> {
+        if let Some(handler_fn) = self.not_found_handler {
+            let mut resp = handler_fn(request, response);
+            resp.set_status(Status::NotFound);
+            return Ok(resp);
+        }
+
         let route = Route::new(request.path.method, request.path.path.as_str());
         Err(Error::RouterError(RouterError::RouteNotFound(route)))
     }
@@ -94,7 +108,7 @@ impl Router {
         let route_segment = match path_str.split('/').nth(1) {
             Some(route) => route,
             None => {
-                return Self::not_found_handler(request);
+                return self.not_found_handler(request, response);
             }
         };
 
@@ -105,7 +119,7 @@ impl Router {
         macro_rules! check_unsafe_path {
             ($var:expr, $($unsafe_expr:expr),*) => {
                 if $($var.contains($unsafe_expr) ||)* false {
-                    return Self::not_found_handler(request);
+                    return self.not_found_handler(request, response);
                 }
             };
         }
@@ -124,7 +138,7 @@ impl Router {
             }
         }
 
-        Self::not_found_handler(request)
+        self.not_found_handler(request, response)
     }
 }
 

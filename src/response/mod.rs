@@ -49,6 +49,11 @@ impl Response {
         self.add_header("Set-Cookie", &format!("{}={}; HttpOnly", name, value));
     }
 
+    /// Changes the status of the response.
+    pub fn set_status(&mut self, status: Status) {
+        self.status = status;
+    }
+
     /// Sets the body of the response to the contents of a file.
     pub fn send_file<P>(&mut self, path: P) -> Result<(), crate::Error>
     where
