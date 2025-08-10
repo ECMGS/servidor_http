@@ -14,18 +14,23 @@ pub mod response;
 /// Contains the [Router] struct, its implementations and [router::RouterError] error handling enum.
 pub mod router;
 
+#[allow(missing_docs)]
+pub mod dispatcher;
+
 use std::{
     io::{self, prelude::*, BufReader},
     net::{TcpListener, TcpStream},
 };
 
 use router::Router;
+use dispatcher::Dispatcher;
 
 /// Struct that represents an HTTP server, it listens on a given port and handles requests from a given router. If no router is attached, it will return an error when calling the handle_connection() method.
 #[derive(Debug)]
 pub struct HttpServer {
     listener: TcpListener,
     router: Option<Router>,
+    dispatcher: Option<Box<dyn Dispatcher>>, 
 }
 
 /// Possible errors that can occur when using the crate.
@@ -99,6 +104,7 @@ impl HttpServer {
         let server = HttpServer {
             listener,
             router: None,
+            dispatcher: None,
         };
         Ok(server)
     }
@@ -118,12 +124,35 @@ impl HttpServer {
 
         for stream_result in self.listener.incoming() {
             let stream = stream_result?;
+            let router_clone = self.router.clone().unwrap();
 
-            let router = self.router.clone().unwrap();
-            Self::handle_connection(stream, router)?;
+            let dispatch_run = Box::new(move || {
+                Self::handle_connection(stream, router_clone)?; 
+                Ok(())
+            });
+
+            match &self.dispatcher {
+                None => {
+                    println!("No distpacher found, executind Single Thread Dispatcher");
+                    let st = dispatcher::SingleThreadDispatcher;
+
+                    st.dispatch(dispatch_run)?;
+                },
+                Some(dispatcher) => {
+                    dispatcher.dispatch(dispatch_run)?;
+                }
+            };
+
+//            let router = self.router.clone().unwrap();
+//            Self::handle_connection(stream, router)?;
         }
 
         Ok(())
+    }
+
+    /// Configures a custom dispatcher for the server
+    pub fn set_dispatcher(&mut self, dispatcher: impl Dispatcher + 'static) {
+        self.dispatcher = Some(Box::new(dispatcher));
     }
 
     fn handle_connection(mut stream: TcpStream, router: Router) -> Result<(), Error> {
@@ -165,6 +194,7 @@ impl HttpServer {
 
         Ok(())
     }
+
 }
 
 /// Trait that represents a binary representation of a struct. It should return a Vec<u8> with the binary representation of the struct. Used to send responses to the client.

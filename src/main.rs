@@ -2,11 +2,15 @@ use servidor_http::{
     package::Package,
     request::{self},
     router::{self, Router},
+    dispatcher::SingleThreadDispatcher,
     HttpServer,
 };
 
 fn main() {
     let mut server = HttpServer::new(8080).unwrap();
+
+    let st = SingleThreadDispatcher;
+    server.set_dispatcher(st);
 
     let mut router = Router::new(String::from("/"));
 
