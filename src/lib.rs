@@ -14,7 +14,7 @@ pub mod response;
 /// Contains the [Router] struct, its implementations and [router::RouterError] error handling enum.
 pub mod router;
 
-#[allow(missing_docs)]
+/// Contains all the logic for dispatching connections. A develper can make their own Dispatcher using the [dispatcher::Dispatcher] trait
 pub mod dispatcher;
 
 use std::{
@@ -143,8 +143,6 @@ impl HttpServer {
                 }
             };
 
-//            let router = self.router.clone().unwrap();
-//            Self::handle_connection(stream, router)?;
         }
 
         Ok(())
