@@ -1,5 +1,5 @@
 use servidor_http::{
-    package::Package,
+    package::Package,  
     request::{self},
     router::{self, Router},
     dispatcher::ForkDispatcher,
@@ -17,7 +17,8 @@ fn main() {
     router.handle_route(
         router::Route::new(request::Method::GET, "/"),
         |req, mut res| {
-            res.set_body(format!("<h1>{}</h1>", req.get_body_string()).into_bytes());
+            let remote_ip = req.get_remote_ip().unwrap();
+            res.set_body(format!("<h1>{}</h1><p>Remote ip: {remote_ip}</p>", req.get_body_string()).into_bytes());
             res.add_header("Content-Type", "text/html");
             res
         },

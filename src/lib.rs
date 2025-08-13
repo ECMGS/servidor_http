@@ -182,7 +182,11 @@ impl HttpServer {
 
         request_bytes.write_all(&body_bytes_buffer)?;
 
-        let request = request::Request::try_from(request_bytes)?;
+        let mut request = request::Request::try_from(request_bytes)?;
+
+        let remote_ip = stream.peer_addr()?;
+
+        request.set_remote_ip(remote_ip);
 
         let mut resp = router.handle_request(request)?;
 

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::net::SocketAddr;
 
 use crate::package;
 use crate::router::Route;
@@ -27,6 +28,8 @@ pub struct Request {
 
     headers: HashMap<String, String>,
     body: Option<Vec<u8>>,
+
+    remote_ip: Option<SocketAddr>,
 }
 
 package::generate_package_getters_setters!(Request[Vec<u8>]);
@@ -42,6 +45,7 @@ impl Request {
             query,
             cookies: CookieList::new(),
             body: None,
+            remote_ip: None
         }
     }
 
@@ -51,6 +55,16 @@ impl Request {
             Some(body) => String::from_utf8_lossy(body).to_string(),
             None => String::new(),
         }
+    }
+
+    /// Sets the remote ip of the request
+    pub fn set_remote_ip(&mut self, remote_ip: SocketAddr) {
+        self.remote_ip = Some(remote_ip);
+    }
+
+    /// Gets the remote ip of the request
+    pub fn get_remote_ip(&self) -> Option<SocketAddr> {
+        self.remote_ip
     }
 
     fn parse_header_str(header_string: &str) -> Result<Request, crate::Error> {
