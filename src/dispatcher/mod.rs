@@ -3,10 +3,12 @@ use std::thread;
 
 use crate::Error;
 
+type Job = Box<dyn FnOnce() -> Result<(), Error> + Send>;
+
 /// Used to dispatch connections by the server
 pub trait Dispatcher: Send + Sync + Debug +  'static {
     /// How the new connection is handled when accepted
-    fn dispatch (&self, job: Box<dyn FnOnce() -> Result<(), Error> + Send>) -> Result<(), Error>;
+    fn dispatch (&self, job: Job) -> Result<(), Error>;
 }
 
 
@@ -15,7 +17,7 @@ pub trait Dispatcher: Send + Sync + Debug +  'static {
 pub struct SingleThreadDispatcher;
 
 impl Dispatcher for SingleThreadDispatcher {
-    fn dispatch (&self, job: Box<dyn FnOnce() -> Result<(), Error> + Send>) -> Result<(), Error> {
+    fn dispatch (&self, job: Job) -> Result<(), Error> {
         job()
     }
 }
@@ -25,7 +27,7 @@ impl Dispatcher for SingleThreadDispatcher {
 pub struct ForkDispatcher;
 
 impl Dispatcher for ForkDispatcher{
-    fn dispatch (&self, job: Box<dyn FnOnce() -> Result<(), Error> + Send>) -> Result<(), Error> {
+    fn dispatch (&self, job: Job) -> Result<(), Error> {
         thread::spawn(move || {
             if let Err(e) = job() {
                eprintln!("[Error] - Error when executing job: {e}"); 
