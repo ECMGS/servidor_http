@@ -3,14 +3,16 @@ use std::thread;
 
 use crate::Error;
 
-type Job = Box<dyn FnOnce() -> Result<(), Error> + Send>;
+pub type Job = Box<dyn FnOnce() -> Result<(), Error> + Send>;
+
+#[doc(hidden)]
+pub mod thread_pool_dispatcher;
 
 /// Used to dispatch connections by the server
 pub trait Dispatcher: Send + Sync + Debug +  'static {
     /// How the new connection is handled when accepted
     fn dispatch (&self, job: Job) -> Result<(), Error>;
 }
-
 
 /// Use to dispatch connections in a single thread. Not recommended
 #[derive(Debug)]
