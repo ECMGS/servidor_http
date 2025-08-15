@@ -199,8 +199,8 @@ impl HttpServer {
 
 }
 
-/// Trait that represents a binary representation of a struct. It should return a Vec<u8> with the binary representation of the struct. Used to send responses to the client.
+/// Trait that represents a binary representation of a struct. It should return a `Vec<u8>` with the binary representation of the struct. Used to send responses to the client.
 pub trait BinaryRepresentation {
-    /// Returns a Vec<u8> with the binary representation of the struct.
+    /// Returns a `Vec<u8>` with the binary representation of the struct.
     fn to_binary(&self) -> Vec<u8>;
 }

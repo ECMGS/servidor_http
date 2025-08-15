@@ -24,8 +24,8 @@ macro_rules! gen_try_from_and_from {
         }
 
         impl Method {
-            /// Generates a request method from a string. If the method is not supported, it will return [RequestMethod::Other] with the method string inside.
-            /// Use preferably [RequestMethod::try_from] instead.
+            /// Generates a request method from a string. If the method is not supported, it will return [Method::Other] with the method string inside.
+            /// Use preferably [Method::try_from] instead.
             pub fn from(method_str: &str) -> Self {
                 match method_str {
                     $($method => $request_type,)*
