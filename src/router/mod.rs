@@ -1,3 +1,4 @@
+/// TODO: ADD DOCUMENTATION
 #[allow(missing_docs)]
 pub mod route;
 
@@ -16,7 +17,7 @@ use crate::{
 };
 
 /// Handles the routing of requests made by the client.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Router {
     path: String,
 
