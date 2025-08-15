@@ -34,13 +34,13 @@ impl Worker {
 
                 match msg {
                     ThreadPoolMsg::Run(job) => {
-                        job();
+                        job().unwrap();
                     },
                     ThreadPoolMsg::Shutdown => {
                         panic!("Not implemented");
                     }
                 }
             }
-        }); 
+        }).unwrap(); 
     }
 }

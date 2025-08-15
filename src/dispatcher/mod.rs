@@ -3,6 +3,7 @@ use std::thread;
 
 use crate::Error;
 
+/// This type is used to handle connections, which for the dispatcher are jobs
 pub type Job = Box<dyn FnOnce() -> Result<(), Error> + Send>;
 
 #[doc(hidden)]

@@ -21,7 +21,7 @@ pub enum ThreadPoolMsg {
 pub struct ThreadPoolDispatcher {
     workers: Vec<Worker>,
     tx: mpsc::Sender<ThreadPoolMsg>,
-    rx: Arc<Mutex<mpsc::Receiver<ThreadPoolMsg>>>
+//    rx: Arc<Mutex<mpsc::Receiver<ThreadPoolMsg>>>
 }
 
 impl ThreadPoolDispatcher {
@@ -36,7 +36,7 @@ impl ThreadPoolDispatcher {
             workers.push(Worker::new(id, Arc::clone(&rx)));
         }
 
-        ThreadPoolDispatcher {tx, rx, workers}
+        ThreadPoolDispatcher {tx, /* rx, */workers}
     }
 
     /// Starts the threads of the thread pool
