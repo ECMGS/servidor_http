@@ -1,5 +1,4 @@
-/// TODO: ADD DOCUMENTATION
-#[allow(missing_docs)]
+/// Used to handle routes in a Router
 pub mod route;
 
 use std::{

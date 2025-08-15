@@ -1,6 +1,30 @@
 #![warn(missing_docs)]
 
 //! Simple HTTP server crate that allows you to create a server and attach a router to it. The router will handle the requests and return the responses. The server listens on a given port and handles the requests using the attached router.
+//!
+//! # Example 
+//!
+//! ``` no_run
+//!     
+//!     use servidor_http::{HttpServer, router, request, package::Package};
+//!     
+//!     let mut server = HttpServer::new(80).unwrap();
+//!   
+//!     let mut router = router::Router::new(String::from("/"));
+//!   
+//!     router.handle_route(
+//!         router::Route::new(request::Method::GET, "/"),
+//!         |req, mut res| {
+//!             res.set_body_string(String::from("<h1>Hello World</h1>"));
+//!             res.add_header("Content-Type", "text/html");
+//!             res
+//!         },
+//!     );
+//!   
+//!     server.attach_router(router);
+//!   
+//!     server.listen().unwrap();
+//! ```
 
 /// Contains the [package::Package] trait and its implementations for the [request::Request] and [response::Response] structs.
 pub mod package;
@@ -12,9 +36,47 @@ pub mod request;
 pub mod response;
 
 /// Contains the [Router] struct, its implementations and [router::RouterError] error handling enum.
+///
+/// # Example of a router
+///
+/// ```rust
+///
+///     use servidor_http::{router, request};
+///
+///     let mut rout = router::Router::default();
+///
+///     rout.handle_route(
+///         router::Route::new(request::Method::GET, "/"),
+///         |req, mut res| {
+///             res.set_body_string(String::from("example response"));
+///             res
+///         },
+///     );
+///
+/// ```
 pub mod router;
 
 /// Contains all the logic for dispatching connections. A develper can make their own Dispatcher using the [dispatcher::Dispatcher] trait
+///
+/// # Example of a custom dispatcher
+///
+/// This example creates a custom dispatcher that dispatch connections in a single thread
+///
+/// ```rust
+///     
+///     use servidor_http::dispatcher;
+///     use servidor_http::Error;
+///
+///     #[derive(Debug)]
+///     struct CustomSingleThreadDispatcher;
+///
+///     impl dispatcher::Dispatcher for CustomSingleThreadDispatcher {
+///         fn dispatch(&self, job: dispatcher::Job) -> Result<(), Error> {
+///             job()
+///         }
+///     }
+///
+/// ```
 pub mod dispatcher;
 
 use std::{
