@@ -1,10 +1,23 @@
+use std::sync::Arc;
+
 use servidor_http::{
     package::Package,  
-    request::{self},
-    router::{self, Router},
+    request::{self, Request},
+    response::Response,
+    router::{self, Router, middleware::{Middleware, NextHandler}},
     dispatcher::thread_pool_dispatcher,
     HttpServer,
 };
+
+#[derive(Debug)]
+struct CustomMiddleware;
+
+impl Middleware for CustomMiddleware {
+   fn handle(&self, req: Request, res: Response, next: NextHandler) -> Response {
+       println!("Ejecutado middleware");
+       next(req, res)
+   } 
+}
 
 fn main() {
     let mut server = HttpServer::new(8080).unwrap();
@@ -14,6 +27,10 @@ fn main() {
     server.set_dispatcher(tpd);
 
     let mut router = Router::new(String::from("/"));
+
+    let cm = Arc::new(CustomMiddleware);
+
+    router.insert_middleware(cm);
 
     router.handle_route(
         router::Route::new(request::Method::GET, "/"),

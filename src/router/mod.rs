@@ -1,31 +1,36 @@
 /// Used to handle routes in a Router
 pub mod route;
 
+#[allow(missing_docs)]
+pub mod middleware;
+
 use std::{
     collections::HashMap,
     fs::{self},
+    sync::Arc,
     path::{Path, PathBuf},
 };
 
 pub use route::Route;
 
 use crate::{
-    request::Request,
-    response::{Response, Status},
-    Error,
+    request::Request, response::{Response, Status}, router::middleware::{run_middleware_and_route, Middleware}, Error
 };
 
+type RouteHandler = fn(Request, Response) -> Response;
+
 /// Handles the routing of requests made by the client.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Router {
     path: String,
 
-    routes: HashMap<Route, fn(Request, Response) -> Response>,
+    routes: HashMap<Route, RouteHandler>,
     routers: HashMap<String, Router>,
+    middlewares: Vec<Arc<dyn Middleware>>,
 
     default_response: Option<Response>,
 
-    not_found_handler: Option<fn(Request, Response) -> Response>,
+    not_found_handler: Option<RouteHandler>,
 
     static_path: Option<PathBuf>,
 }
@@ -43,6 +48,7 @@ impl Router {
             path,
             routes: HashMap::new(),
             routers: HashMap::new(),
+            middlewares: Vec::new(),
             default_response: None,
             not_found_handler: None,
             static_path: None,
@@ -50,7 +56,7 @@ impl Router {
     }
 
     /// Handles a response for a given route
-    pub fn handle_route(&mut self, route: Route, handler: fn(Request, Response) -> Response) {
+    pub fn handle_route(&mut self, route: Route, handler: RouteHandler) {
         self.routes.insert(route, handler);
     }
 
@@ -68,8 +74,13 @@ impl Router {
     }
 
     /// Handles a not found route, this will be called when a route is not found
-    pub fn handle_not_found(&mut self, handler: fn(Request, Response) -> Response) {
+    pub fn handle_not_found(&mut self, handler: RouteHandler) {
         self.not_found_handler = Some(handler);
+    }
+
+    /// Adds a middleware to the router
+    pub fn insert_middleware(&mut self, middleware: Arc<dyn Middleware>) {
+        self.middlewares.push(middleware);
     }
 
     fn not_found_handler(&self, request: Request, response: Response) -> Result<Response, Error> {
@@ -101,8 +112,14 @@ impl Router {
             .clone()
             .unwrap_or_else(|| Response::new(Status::OK));
 
+
         if let Some(handler) = self.routes.get(&request_route) {
-            return Ok(handler(request, response));
+            let middlewares_arc: Arc<[Arc<dyn Middleware>]> = self.middlewares.clone().into_boxed_slice().into();
+            let handler_fn = *handler; 
+
+            return Ok(
+                run_middleware_and_route(middlewares_arc, request, response, 0, handler_fn)
+            );
         }
 
         let route_segment = match path_str.split('/').nth(1) {
