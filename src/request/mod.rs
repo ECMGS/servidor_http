@@ -244,7 +244,8 @@ impl PartialEq for Request {
         if self.path != other.path || self.body != other.body || self.headers != other.headers {
             return false;
         }
-        return true;
+
+        true
     }
 }
 
