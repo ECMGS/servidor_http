@@ -166,7 +166,8 @@ impl PartialEq for Router {
         if self.routes != other.routes || self.path != other.path || self.routers != other.routers || self.default_response != other.default_response || self.static_path != other.static_path {
             return false;
         }
-        return true;
+
+        true
     }
 }
 
