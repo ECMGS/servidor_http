@@ -248,7 +248,7 @@ impl HttpServer {
 
         let remote_ip = stream.peer_addr()?;
 
-        request.set_remote_ip(remote_ip);
+        request.remote_ip = Some(remote_ip);
 
         let mut resp = router.handle_request(request)?;
 

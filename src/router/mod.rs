@@ -26,6 +26,7 @@ pub struct Router {
 
     routes: HashMap<Route, RouteHandler>,
     routers: HashMap<String, Router>,
+
     middlewares: Vec<Arc<dyn Middleware>>,
 
     default_response: Option<Response>,
@@ -156,6 +157,16 @@ impl Router {
         }
 
         self.not_found_handler(request, response)
+    }
+}
+
+/// The middlewares of both routers cannot be compared
+impl PartialEq for Router {
+    fn eq(&self, other: &Self) -> bool {
+        if self.routes != other.routes || self.path != other.path || self.routers != other.routers || self.default_response != other.default_response || self.static_path != other.static_path {
+            return false;
+        }
+        return true;
     }
 }
 

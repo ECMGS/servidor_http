@@ -9,13 +9,15 @@ pub use crate::package::Package;
 mod cookie_list;
 mod method;
 mod query;
+mod pocket;
 
 pub use cookie_list::CookieList;
 pub use method::Method;
 pub use query::Query;
+pub use pocket::Pocket;
 
 /// Represents a request made by a client.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Request {
     /// The route of the request.
     pub path: Route,
@@ -26,10 +28,16 @@ pub struct Request {
     /// The cookies of the request.
     pub cookies: CookieList,
 
-    headers: HashMap<String, String>,
-    body: Option<Vec<u8>>,
+    /// Headers of the request
+    pub headers: HashMap<String, String>,
 
-    remote_ip: Option<SocketAddr>,
+    /// IP of remote host
+    pub remote_ip: Option<SocketAddr>,
+
+    /// Pocket for middleware storage
+    pub pocket: Pocket,
+    
+    body: Option<Vec<u8>>,
 }
 
 package::generate_package_getters_setters!(Request[Vec<u8>]);
@@ -44,8 +52,9 @@ impl Request {
             headers: HashMap::new(),
             query,
             cookies: CookieList::new(),
+            remote_ip: None,
+            pocket: Pocket::new(),
             body: None,
-            remote_ip: None
         }
     }
 
@@ -55,16 +64,6 @@ impl Request {
             Some(body) => String::from_utf8_lossy(body).to_string(),
             None => String::new(),
         }
-    }
-
-    /// Sets the remote ip of the request
-    pub fn set_remote_ip(&mut self, remote_ip: SocketAddr) {
-        self.remote_ip = Some(remote_ip);
-    }
-
-    /// Gets the remote ip of the request
-    pub fn get_remote_ip(&self) -> Option<SocketAddr> {
-        self.remote_ip
     }
 
     fn parse_header_str(header_string: &str) -> Result<Request, crate::Error> {
@@ -236,6 +235,16 @@ impl TryFrom<Vec<u8>> for Request {
         request.set_body(body);
 
         Ok(request)
+    }
+}
+
+/// PartialEq ONLY COMPARES THE PATH, BODY AND HEADERS OF A REQUEST
+impl PartialEq for Request {
+    fn eq(&self, other: &Self) -> bool {
+        if self.path != other.path || self.body != other.body || self.headers != other.headers {
+            return false;
+        }
+        return true;
     }
 }
 
